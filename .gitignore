@@ -1,0 +1,11 @@
+*.out
+*.in
+*~
+*.tmp
+*.ini
+*.txt
+*.txt~
+*.pyc
+*.cpp~
+*.swp
+*.pid
