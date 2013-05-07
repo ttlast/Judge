@@ -1,6 +1,6 @@
-演示网站：
-	http://dafeizhu.cloudapp.net
-	搭建在Azure上，服务器到2013年9月份到期。
+1、演示网站：
+	http://dafeizhu.cloudapp.net ,搭建在Azure上，服务器到2013年9月份到期。
+	
 1、开发环境：
 	Ubuntu 10.4 、 g++ 、python，vim
 
