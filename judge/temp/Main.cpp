@@ -1,48 +1,35 @@
-#include <iostream>
-#include <string.h>
+#include<iostream>
+#include<algorithm>
+#include<string.h>
 using namespace std;
-int main( )
-{
-	char input[81];
-	int flag = 0;
-	int T;
-	cin >> T;
-	for( int i=0; i<T; ++i )
-	{
-		flag = 0;
-		cin >> input;
-		int length = strlen( input );
-		for( int j=0; j<length; ++j )
-		{
-			
-			if( input[j] == '!' )
-			{
-				flag++;
-				continue;
-			}
 
-			else
+int h[100005],s[100005];
+
+int main()
+{
+	int n,i,j;
+	long long ans;
+	while(cin>>n)
+	{
+		ans=1;j=0;
+		for(i=0;i<n;i++)
+			cin>>s[i];
+		for(i=0;i<n;i++)
+			cin>>h[i];
+		sort(s,s+n);
+		sort(h,h+n);
+		for(i=0;i<n;i++)
+		{
+			if(h[i]<s[i]) {ans=0;break;}
+			for(;j<n;j++)
 			{
-				if( flag%2 == 0 )
-				{
-					cout << input[j];
-					continue;
-				}
-				else
-				{
-					if( input[j]>='a' && input[j]<='z' )
-					{
-						cout << char(input[j]-32);
-					}
-					else
-					{
-						cout << char(input[j]+32);
-					}
-				}
+				if(h[i]<s[j]) break;
 			}
-			
+			ans*=(j-i);
+			ans%=1000000007;
+			j--;
 		}
-		cout << endl;
+		cout<<ans<<endl;
 	}
 	return 0;
 }
