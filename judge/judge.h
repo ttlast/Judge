@@ -16,6 +16,7 @@
 #include <pwd.h>
 #include <sys/types.h>
 #include "logger.h"
+#include "language.h"
 
 //#define JUDGE_DEBUG
 namespace judge_conf
@@ -25,6 +26,8 @@ namespace judge_conf
 
 	//ÈÕÖ¾ÎÄ¼þÂ·¾¶
 	std::string log_file = "log.txt";
+
+	char sysuser[] = "kidx";
 
 	//judge ×Ô¼ºÊ±ÏÞ(ms) 40s
 	int judge_time_limit = 40000;
@@ -43,13 +46,6 @@ namespace judge_conf
 	//java Ê±¼ä¡¢ÄÚ´æ·­±¶
 	int java_time_factor = 2;
 	int java_memory_factor = 2;
-
-	//OJÓïÑÔ
-	const std::string languages[] = {"unknown","c","c++","java"};
-	const int LANG_UNKNOWN		= 0;
-	const int LANG_C			= 1;
-	const int LANG_CPP			= 2;
-	const int LANG_JAVA			= 3;
 
 	//OJ²âÊÔ½á¹û
 	const int OJ_WAIT	= 0; 	//Queue
@@ -130,7 +126,7 @@ namespace problem
 	{
 		LOG_DEBUG("----Problem\tinformation----");
 		LOG_DEBUG("Problem spj : %s Problem tc %s",spj?"True":"False",tc?"True":"False");
-		LOG_DEBUG("id %d lang %s",id,judge_conf::languages[lang].c_str());
+		LOG_DEBUG("id %d lang %s",id,judge_conf::Langs[lang]->Name.c_str());
 		LOG_DEBUG("time_limit %d	memory_limit %d",time_limit,memory_limit);
 		LOG_DEBUG("output_limit %d",output_limit);
 

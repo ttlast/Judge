@@ -124,7 +124,7 @@ class Daemon:
 cefile = "./temp/ce.txt"
 dadir = "./data"
 tmdir = "./temp"
-langf = {1:"Main.c",2:"Main.cpp",3:"Main.java",4:"Main.cpp",5:"Main.cs"}
+langf = {1:"Main.c",2:"Main.cpp",3:"Main.java"}
 def makefile(lang,val):
 	try:
 		sfile = tmdir + "/" + langf[lang]
@@ -213,26 +213,19 @@ class JudgeDaemon(Daemon):
 						#print one_solution["language"],one_solution["code"]
 						#print dadir + "/" + str(one_solution['problemID'])
 						one_problem = problems.find_one({'problemID':int(one_solution['problemID'])})
-						if int(one_problem['spj']) == 1 and int(one_problem['TC']) == 1:
-							gzhujudge = judge(one_solution["language"],datadir = dadir +"/" + str(one_solution['problemID']),spj=True,tc=True);
-						elif int(one_problem['spj']) == 1:
-							gzhujudge = judge(one_solution["language"],datadir = dadir +"/" + str(one_solution['problemID']),spj=True);
-						elif int(one_problem['TC']) == 1:
-							gzhujudge = judge(one_solution["language"],datadir = dadir +"/" + str(one_solution['problemID']),tc=True);
-						else:
+						if int(one_problem['spj']) == 0:
 							gzhujudge = judge(one_solution["language"],datadir = dadir +"/" + str(one_solution['problemID']));
+						else:
+							gzhujudge = judge(one_solution["language"],datadir = dadir +"/" + str(one_solution['problemID']),spj=True);
 						gzhujudge.setlimit(int(one_problem['timeLimit']),int(one_problem['memoryLimit']))	
 						gzhujudge.run();
 						if gzhujudge.result == OJ_CE:
 							ce_file = open(cefile)
 							try:
 								all_ce_text = ce_file.read()
-								ce_file.close()
 								solutions.update({"_id":one_solution["_id"]},{"$set":{"CE":all_ce_text}})
-							except:
-								ce_file.close()
-								solutions.update({"_id":one_solution["_id"]},{"$set":{"CE":"错误：编译信息无法获取！（可能存在乱码）\n"}})
-								solutions.update({"_id":one_solution["_id"]},{"$set":{"result":gzhujudge.result,"time":gzhujudge.time,"memory":gzhujudge.mem}})
+							finally:
+								ce_file.close()	
 						if gzhujudge.result == OJ_AC: #AC
 							problems.update({"problemID":int(one_solution['problemID'])},{"$inc":{"AC":1}})
 							is_ac = solutions.find_one({'problemID':int(one_solution['problemID']),'userName':one_solution['userName'],'result':OJ_AC})
@@ -249,7 +242,7 @@ class JudgeDaemon(Daemon):
 
 
 if __name__ == "__main__":
-	daemon = JudgeDaemon(os.getcwd() + '/dtest/daemon.pid',stdout="/dev/stdout") #绝对路径
+	daemon = JudgeDaemon('/home/kidx/OJ/dtest/daemon.pid',stdout="/dev/stdout") #绝对路径
 	if len(sys.argv) == 2:
 		if 'start' == sys.argv[1]:
 			daemon.start()

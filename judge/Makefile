@@ -1,2 +1,2 @@
 Judge: test.cpp
-	cc -o test.cpp
+	g++ -o Judge test.cpp

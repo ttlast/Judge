@@ -1,0 +1,109 @@
+#ifndef _LANGUAGE_H
+#define _LANGUAGE_H
+
+#include <string>
+
+namespace LanguageSupport
+{
+
+struct LangSupport
+{
+	std::string Name;                  //编程语言名称
+	std::string MainFile;              //待测程序源码文件
+	std::string TCfile;                //TC模式测试文件的文件名
+	const char* const CompileCmd[20];  //编译待评测程序的命令行
+	const char* const RunCmd[20];      //运行待评测程序的命令行
+	bool VMrunning;                    //该语言是否以虚拟机方式运行
+};
+
+const LangSupport UnknownLang = {
+	"unknown", "NA", "NA",
+	{NULL},
+	{NULL},
+	false
+};
+
+const LangSupport CLang = {
+	"c", "Main.c", "tc.c",
+#ifdef JUDGE_DEBUG
+	{"gcc","Main.c","-o","Main", 
+	"-std=c99", "-O2", NULL},
+#else
+	{"gcc", "Main.c", "-o", "Main", "-Wall", "-lm",
+	"--static", "-std=c99", "-DONLINE_JUDGE", NULL },
+#endif
+	{"./Main", NULL},
+	false
+};
+
+const LangSupport CppLang = {
+	"c++", "Main.cpp", "tc.cpp",
+#ifdef JUDGE_DEBUG
+	{"g++","Main.cpp","-o",
+	"Main", "-O2",NULL},
+#else
+	{ "g++", "Main.cpp", "-o", "Main", "-Wall",
+	"-lm", "--static", "-DONLINE_JUDGE", NULL },
+#endif
+	{"./Main", NULL},
+	false
+};
+
+const LangSupport JavaLang = {
+	"java", "Main.java", "tc.java",
+#ifdef JUDGE_DEBUG
+	{"javac", "Main.java", NULL },
+#else
+	{ "javac", "-J-Xms32m", "-J-Xmx256m",
+	"Main.java", NULL },
+#endif
+	{"java", "-DONLINE_JUDGE=true", "Main", NULL},
+	true	
+};
+
+const LangSupport CC11Lang = {
+	"c++11", "Main.cpp", "tc.cpp",
+#ifdef JUDGE_DEBUG
+	{"g++-4.8","Main.cpp","-o",
+	"Main", "-std=c++11","-O2",NULL},
+#else
+	{ "g++-4.8", "Main.cpp", "-o", "Main", "-std=c++11",
+	"-Wall", "-lm", "--static", "-DONLINE_JUDGE", NULL },
+#endif
+	{"./Main", NULL},
+	false
+};
+
+const LangSupport CSLang = {
+	"C#", "Main.cs", "tc.cs",
+	{"gmcs", "-define:ONLINE_JUDGE", "-warn:0", "Main.cs", NULL},
+	{"mono", "Main.exe", NULL},
+	true
+};
+
+}; //End of namespace
+
+LanguageSupport::LangSupport const *Langs[] =
+{
+	&LanguageSupport::UnknownLang,
+	&LanguageSupport::CLang,
+	&LanguageSupport::CppLang,
+	&LanguageSupport::JavaLang,
+	&LanguageSupport::CC11Lang,
+	&LanguageSupport::CSLang
+};
+
+namespace judge_conf
+{
+	//OJÓïÑÔ
+	const int LANG_UNKNOWN			= 0;
+	const int LANG_C			= 1;
+	const int LANG_CPP			= 2;
+	const int LANG_JAVA			= 3;
+	const int LANG_CC11			= 4;
+	const int LANG_CS                       = 5;
+};
+
+//修改完后记得修改okcall.h
+
+#endif

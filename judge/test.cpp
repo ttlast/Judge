@@ -5,7 +5,7 @@
  * use:
  *    ./judge -l 语言   -D 数据目录
  *            -d 临时目录 -t 时间限制 -m 内存限制 -o 输出限制  [-S dd] [-T]
- *	-l 语言        C=1, C++=2, JAVA=3
+ *	-l 语言        C=1, C++=2, JAVA=3, C++11=4
  *	-D 数据目录	   包括题号的输入输出文件的目录
  *	-d 临时目录    judge可以用来存放编译后的文件及其他临时文件的
  *	-t 时间限制    允许程序运行的最长时间, 以毫秒为单位, 默认为1000, 1s
@@ -50,6 +50,10 @@ using namespace std;
 extern int errno;
 const int MAXN = 8192;
 
+
+//重构：令语言支持独立于评测逻辑 By Sine 2013_12_01
+//In file "language.h"
+
 //normal compare file
 void compare_until_nonspace(int &c_std,int &c_usr,
 		FILE *&fd_std,FILE *&fd_usr,int &ret)
@@ -75,9 +79,16 @@ void addfile(string &main_file,string &tc_file){
 	char cc[MAXN+5];
 	FILE *sc_fd = fopen(main_file.c_str(),"a");
 	FILE *tc_fd = fopen(tc_file.c_str(),"r");
-	if((!sc_fd) || (!tc_fd)){
-		exit(judge_conf::EXIT_PRE_JUDGE);
-	}else{
+	if(sc_fd && tc_fd) {
+	/*	exit(judge_conf::EXIT_PRE_JUDGE);
+	}else{*/
+		/*
+		Bugfix: Add a newline character before main function
+		Date & Time: 2013-07-29 14:07
+		Author: Sine
+		*/
+		fputs("\n",sc_fd);
+		//End of the Bugfix
 		while(fgets(cc,MAXN,tc_fd)){
 			fputs(cc,sc_fd);
 		}
@@ -89,29 +100,18 @@ void addfile(string &main_file,string &tc_file){
 }
 
 int tc_mode(){
-	switch(problem::lang){
-		case judge_conf::LANG_C:
-			problem::source_file = problem::temp_dir + "/" + "Main.c";
-			break;
-		case judge_conf::LANG_CPP:
-			problem::source_file = problem::temp_dir + "/" + "Main.cpp";
-			break;
-		case judge_conf::LANG_JAVA:
-			problem::source_file = problem::temp_dir + "/" + "Main.java";
-			break;
-		default:
-			break;
-	}
+	problem::source_file = problem::temp_dir + "/" + Langs[problem::lang]->MainFile;
 	addfile(problem::source_file,problem::tc_file);
 	return -1;
 }
 
 //特判
 int spj_compare_output(
-		string input_file,	//标准输入文件
-		string output_file,	//用户程序的输出文件
-		string spj_exec,	//spj路径
-		string file_spj		//spj的输出文件
+		string input_file,		//标准输入文件
+		string output_file,		//用户程序的输出文件
+		string spj_exec,		//spj路径,change it from exefile to the folder who store the exefile
+		string file_spj,		//spj的输出文件
+		string output_file_std
 		)
 {
 #ifdef JUDGE_DEBUG__
@@ -120,6 +120,23 @@ int spj_compare_output(
 	cout<<"spj_exec: "<<spj_exec<<endl;
 	cout<<"file_spj: "<<file_spj<<endl;
 #endif
+	/*
+	Improve: Auto rebuild spj.exe while find spj.cpp
+	Improve: If spj.exe is not exist, return SE
+	Date & Time: 2013-11-10 08:03
+	Author: Sine
+	*/
+	if (access((spj_exec+"/spj.cpp").c_str(),0) == 0) {
+		string syscmd = "g++ -o ";
+		syscmd += spj_exec + "/"+problem::spj_exe_file+" " + spj_exec + "/spj.cpp"; 
+		system(syscmd.c_str());
+		syscmd = "mv ";
+		syscmd += spj_exec + "/spj.cpp " + spj_exec + "/spj.oldcode";
+		system(syscmd.c_str());
+	}
+	if (access((spj_exec+"/"+problem::spj_exe_file).c_str(),0))
+		return judge_conf::OJ_SE;
+	//End of the Improve*/
 	int status = 0;
 	pid_t pid_spj = fork();
 	if(pid_spj < 0){
@@ -132,9 +149,10 @@ int spj_compare_output(
 		if(EXIT_SUCCESS == malarm(ITIMER_REAL,judge_conf::spj_time_limit))
 		{
 			log_close();
-			//argv[1] 标准输入 ， argv[2] 用户程序输出
-			if(execlp(spj_exec.c_str(),"spj.exe",input_file.c_str(),
-						output_file.c_str(),NULL) < 0)
+			//argv[1] 标准输入 ， argv[2] 用户程序输出, argv[3] 标准输出
+			if(execlp((spj_exec+"/"+problem::spj_exe_file).c_str(),
+				problem::spj_exe_file.c_str(),input_file.c_str(),
+				output_file.c_str(),output_file_std.c_str(),NULL) < 0)
 			{
 				printf("spj execlp error\n");
 			}
@@ -251,24 +269,18 @@ void parse_arguments(int argc,char *argv[])	//根据命令设置好配置.
 		}
 	}
 
-	if(problem::lang == judge_conf::LANG_JAVA)
+	if(Langs[problem::lang]->VMrunning)
 	{
 		problem::time_limit *= judge_conf::java_time_factor;
 		problem::memory_limit *= judge_conf::java_memory_factor;
 	}
 	if(problem::tc){
-		if(problem::lang == judge_conf::LANG_JAVA){
-			problem::tc_file = problem::data_dir + "/" + "tc.java";
-		}else if(problem::lang == judge_conf::LANG_C){
-			problem::tc_file = problem::data_dir + "/" + "tc.c";
-		}else if(problem::lang == judge_conf::LANG_CPP){
-			problem::tc_file = problem::data_dir + "/" + "tc.cpp";
-		}
+		problem::tc_file = problem::data_dir + "/" + Langs[problem::lang]->TCfile;
 	}
 	if(problem::spj == true)
 	{
-		problem::spj_exe_file = problem::data_dir + "/" + "spj.exe";
-		problem::stdout_file_spj = problem::temp_dir + "/" + "stdout_spj.txt";
+		problem::spj_exe_file = "spj.exe";
+		problem::stdout_file_spj = "stdout_spj.txt";
 	}
 	judge_conf::judge_time_limit += problem::time_limit;
 #ifdef JUDGE_DEBUG
@@ -282,6 +294,7 @@ void io_redirect()
 {
 	freopen(problem::input_file.c_str(),"r",stdin);
 	freopen(problem::output_file.c_str(),"w",stdout);
+	freopen(problem::output_file.c_str(),"w",stderr);
 	if(stdin == NULL || stdout == NULL){
 		LOG_BUG("error in freopen: stdin(%p) stdout(%p)",stdin,stdout);
 		exit(judge_conf::EXIT_PRE_JUDGE);
@@ -348,22 +361,6 @@ void set_limit()
 
 int Compiler()
 {
-#ifdef JUDGE_DEBUG
-	const char *CP_C[] = {"gcc","Main.c","-o","Main", 
-		"-std=c99", "-O2", NULL};
-	const char *CP_X[] = {"g++","Main.cpp","-o","Main", 
-		"-O2",NULL};
-	const char *CP_J[] = {"javac", "Main.java",
-		NULL };
-
-#else		//用户程序必须是静态的，系统调用的限制才能有效工作。
-	const char * CP_C[] = { "gcc", "Main.c", "-o", "Main", "-O2","-Wall", "-lm",
-		"--static", "-std=c99", "-DONLINE_JUDGE", NULL };
-	const char * CP_X[] = { "g++", "Main.cpp", "-o", "Main", "-O2", "-Wall",
-		"-lm", "--static", "-DONLINE_JUDGE", NULL };
-	const char *CP_J[] = {"javac", "-J-Xms32m", "-J-Xmx256m", "Main.java",
-		NULL };
-#endif
 	int status = 0;
 	pid_t compiler = fork();
 	if(compiler < 0)
@@ -373,21 +370,12 @@ int Compiler()
 	}else if(compiler == 0)
 	{
 		chdir(problem::temp_dir.c_str());
-
 		freopen("ce.txt","w",stderr); //编译出错信息
 		malarm(ITIMER_REAL,judge_conf::compile_time_limit);
-		switch(problem::lang)
-		{
-			case judge_conf::LANG_C:
-				execvp(CP_C[0],(char * const *) CP_C);
-				break;
-			case judge_conf::LANG_CPP:
-				execvp(CP_X[0],(char * const *) CP_X);
-				break;
-			case judge_conf::LANG_JAVA:
-				execvp(CP_J[0],(char * const *) CP_J);
-				break;
-		}
+		execvp(
+			Langs[problem::lang]->CompileCmd[0],
+			(char * const *) Langs[problem::lang]->CompileCmd
+		);
 		//execvp  error
 		LOG_WARNING("compile evecvp error");
 		exit(judge_conf::EXIT_COMPILE); 
@@ -502,10 +490,9 @@ int main(int argc,char *argv[])
 				//重新定向io
 				io_redirect();
 
-
 				//设置运行根目录、运行用户
 				//获得运行用户的信息
-				struct passwd *judge = getpwnam("ttlast");
+				struct passwd *judge = getpwnam(judge_conf::sysuser);
 				if(judge == NULL){
 					LOG_BUG("no user named 'judge'");
 					exit(judge_conf::EXIT_SET_SECURITY);
@@ -517,6 +504,7 @@ int main(int argc,char *argv[])
 					exit(judge_conf::EXIT_SET_SECURITY);
 				}
 				char cwd[1024], *tmp = getcwd(cwd,1024);
+				printf("%s\n",cwd);
 				if(tmp == NULL){ //获取当前目录失败
 					LOG_BUG("getcwd failed");
 					exit(judge_conf::EXIT_SET_SECURITY);
@@ -525,14 +513,14 @@ int main(int argc,char *argv[])
 				//#ifdef JUDEG_DEBUG
 				//这里现在在fedora下有bug
 				//设置根目录
-				if(problem::lang != judge_conf::LANG_JAVA){
+			/*	if(problem::lang == judge_conf::LANG_JAVA) {
 					if(EXIT_SUCCESS != chroot(cwd)){
 						LOG_BUG("chroot failed");
 						exit(judge_conf::EXIT_SET_SECURITY);
 					}
-				}
-				//#endif
+				}*/
 
+				//#endif
 				//设置有效用户
 				if(EXIT_SUCCESS != setuid(judge->pw_uid)){
 					LOG_BUG("setuid failed");
@@ -550,27 +538,21 @@ int main(int argc,char *argv[])
 					exit(judge_conf::EXIT_PRE_JUDGE);
 				}
 
-				//用setrlimit 设置用户程序的 内存 时间 输出文件大小的限制
-				//log close for fsize
-				set_limit();
-
-
 				//ptrace 监控下面程序
 				if(ptrace(PTRACE_TRACEME,0,NULL,NULL) < 0){
 					exit(judge_conf::EXIT_PRE_JUDGE_PTRACE);
 				}
 
+				//用setrlimit 设置用户程序的 内存 时间 输出文件大小的限制
+				//log close for fsize
+				set_limit();
 
 				//运行程序
-				if(problem::lang != judge_conf::LANG_JAVA){
-					if(execlp("./Main","Main",NULL) < 0)
-					{
-						printf("error exit_pre_jduge_execlp");
-					}
-				}else{
-					execlp("java","java","Main",NULL);
-					//这样运行有安全漏洞
-				}
+				execvp(
+					Langs[problem::lang]->RunCmd[0],
+					(char * const *) Langs[problem::lang]->RunCmd
+				);
+				int errsa = errno;
 				exit(judge_conf::EXIT_PRE_JUDGE_EXECLP);
 			}else{
 				//父进程监控子进程的状态和系统调用
@@ -590,7 +572,7 @@ int main(int argc,char *argv[])
 					//如果是退出信号
 					if(WIFEXITED(status)){
 						//java 返回非0表示出错
-						if(problem::lang != judge_conf::LANG_JAVA 
+						if((!Langs[problem::lang]->VMrunning)
 								|| WEXITSTATUS(status) == EXIT_SUCCESS)
 						{
 							int result;
@@ -598,8 +580,9 @@ int main(int argc,char *argv[])
 								//spj
 								result = spj_compare_output(problem::input_file,
 										problem::output_file,
-										problem::spj_exe_file,
-										problem::stdout_file_spj);
+										problem::data_dir,//problem::spj_exe_file,modify in 13-11-10
+										problem::temp_dir + "/" + problem::stdout_file_spj,
+										problem::output_file_std);
 							}else
 							{
 								result = compare_output(problem::output_file_std,
@@ -642,7 +625,7 @@ int main(int argc,char *argv[])
 								//LOG_BUG("KILL");
 								problem::result = judge_conf::OJ_TLE;
 								break;
-								//OLE
+							//OLE
 							case SIGXFSZ:
 								problem::result = judge_conf::OJ_OLE;
 								break;
@@ -654,12 +637,11 @@ int main(int argc,char *argv[])
 								break;
 							default:
 								problem::result = judge_conf::OJ_RE_UNKNOW;
-
 						}
 						//This is a debug
 						//LOG_DEBUG("This is the file: %s\n",problem::input_file.c_str());
 						//
-						ptrace(PTRACE_KILL,userexe,NULL,NULL);
+						ptrace(PTRACE_KILL, userexe);
 						break;
 					}//end if
 
@@ -668,7 +650,7 @@ int main(int argc,char *argv[])
 //							rused.ru_minflt *(getpagesize()/judge_conf::KILO));
 					int tempmemory = 0;
 
-					if(problem::lang == judge_conf::LANG_JAVA)
+					if(Langs[problem::lang]->VMrunning)
 					{
 	  					tempmemory = rused.ru_minflt *(getpagesize()/judge_conf::KILO);
 					}else{
@@ -679,12 +661,12 @@ int main(int argc,char *argv[])
 					if(problem::memory_usage > problem::memory_limit)
 					{
 						problem::result = judge_conf::OJ_MLE;
-						ptrace(PTRACE_KILL,userexe,NULL,NULL);
+						ptrace(PTRACE_KILL,userexe);
 						break;
 					}
 
 					//检查userexe的syscall
-					if(ptrace(PTRACE_GETREGS,userexe,NULL,&regs) < 0){
+					if(ptrace(PTRACE_GETREGS,userexe,0,&regs) < 0){
 						LOG_BUG("error ptrace ptrace_getregs");
 						exit(judge_conf::EXIT_JUDGE);
 					}
@@ -712,7 +694,14 @@ int main(int argc,char *argv[])
 
 			problem::time_usage += rused.ru_utime.tv_sec*1000 +
 				rused.ru_utime.tv_usec/1000;
-			//非ac pe，没有继续的必要
+			/*
+			Bugfix: Used time have not take account of the System Time
+			Date & Time: 2013-11-10 09:36
+			Author: Sine
+			*/
+			problem::time_usage += rused.ru_stime.tv_sec*1000 +
+				rused.ru_stime.tv_usec/1000;
+			//End of this Bugfix
 			if(problem::result != judge_conf::OJ_AC &&
 					problem::result != judge_conf::OJ_PE)
 			{
@@ -721,6 +710,19 @@ int main(int argc,char *argv[])
 				}
 				break;
 			}
+			/*
+			Buffix: time usage greater than limit, but get AC or PE
+			Date & Time: 2013-12-05 05:51
+			Author: Sine
+			*/
+			else
+			{
+				if (problem::time_usage > problem::time_limit) {
+					problem::result = judge_conf::OJ_TLE;
+					problem::time_usage = problem::time_limit;
+				}
+			}
+			//End of this Bufix
 
 		}//if(isInfile())
 

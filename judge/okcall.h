@@ -1,9 +1,9 @@
 /*
  * 	
  *  syscall 调用的可用次数
- *	-1	禁止调用
+ *	0	禁止调用
  *	1 ->  可以调用次数
- *	0	不限制调用次数
+ *	-1	不限制调用次数
  */
 
 #ifndef __OKCALL__
@@ -133,112 +133,56 @@ int ok_java[512] =
 	SYS_uname, -1,
 	-1
 };
-#else
-int ok_c[512] =
-{
-    SYS_arch_prctl,     -1,
-    SYS_brk,            -1,
-    SYS_close,          -1,
-    SYS_execve,          1,
-    SYS_exit_group,     -1,
-    SYS_fstat,          -1,
-    SYS_futex,          -1,
-    SYS_gettimeofday,   -1,
-    SYS_mmap,           -1,
-    SYS_mremap,         -1,
-    SYS_mprotect,       -1,
-    SYS_munmap,         -1,
-    SYS_lseek,          -1,
-    SYS_read,           -1,
-    SYS_set_thread_area,-1,
-    SYS_uname,          -1,
-    SYS_write,          -1,
-    SYS_writev,         -1,
-    -1
+
+int ok_cs[512] = {
+	3, 32,
+	4, 4,
+	5, 64,
+	6, 64,
+	7, 1,
+	10, 1,
+	11, 1,
+	13, 32,
+	33, 16,
+	37, 16,
+	45, 64,
+	54, 2,
+	78, -1,
+	85, 8,
+	91, 16,
+	99, 1,
+	102, 4,
+	120, 4,
+	122, 4,
+	125, 32,
+	140, 2,
+	141, 2,
+	158, 1,
+	174, 32,
+	175, 4,
+	183, 8,
+	186, 2,
+	191, 8,
+	192, 64,
+	194, 1,
+	197, 32,
+	199, 1,
+	220, 2,
+	221, 4,
+	240, 64,
+	242, 4,
+	243, 1,
+	252, 1,
+	258, 1,
+	265, 8,
+	266, 1,
+	270, 2,
+	295, 1,
+	311, 1,
+	-1
 };
 
-int ok_cpp[512] = 
-{
-    SYS_access,         -1,
-    SYS_arch_prctl,     -1,
-    SYS_brk,            -1,
-    SYS_close,          -1,
-    SYS_execve,          1,
-    SYS_exit_group,     -1,
-    SYS_fstat,          -1,
-    SYS_futex,          -1,
-    SYS_gettimeofday,   -1,
-    SYS_mmap,           -1,
-    SYS_mremap,         -1,
-    SYS_mprotect,       -1,
-    SYS_munmap,         -1,
-    SYS_lseek,          -1,
-    SYS_read,           -1,
-    SYS_set_thread_area,-1,
-    SYS_uname,          -1,
-    SYS_write,          -1,
-    SYS_writev,         -1,
-    -1
-};
 
-int ok_pas[512] = 
-{
-    SYS_close,          -1,
-    SYS_execve,         1,
-    SYS_exit_group,     -1,
-    SYS_futex,          -1,
-    SYS_getrlimit,      -1,
-    SYS_gettimeofday,   -1,
-    SYS_ioctl,          -1,
-    SYS_mmap,           -1,
-    SYS_mremap,         -1,
-    SYS_munmap,         -1,
-    SYS_lseek,          -1,
-    SYS_read,           -1,
-    SYS_readlink,       -1,
-    SYS_rt_sigaction,   -1,
-    SYS_uname,          -1,
-    SYS_write,          -1,
-    SYS_writev,         -1,
-    -1
-};
-
-int ok_java[512] = 
-{
-    SYS_access,         -1,
-    SYS_arch_prctl,     -1,
-    SYS_brk,            -1,
-    SYS_clone,          -1,
-    SYS_close,          -1,
-    SYS_execve,         -1,
-    SYS_exit_group,     -1,
-    SYS_fstat,          -1,
-    SYS_futex,          -1,
-    SYS_getegid,        -1,
-    SYS_geteuid,        -1,
-    SYS_getgid,         -1,
-    SYS_getrlimit,      -1,
-    SYS_gettimeofday,   -1,
-    SYS_getuid,         -1,
-    SYS_mmap,           -1,
-    SYS_mremap,         -1,
-    SYS_mprotect,       -1,
-    SYS_munmap,         -1,
-    SYS_lseek,          -1,
-    SYS_open,           -1,
-    SYS_read,           -1,
-    SYS_readlink,       -1,
-    SYS_rt_sigaction,   -1,
-    SYS_rt_sigprocmask, -1,
-    SYS_set_robust_list,-1,
-    SYS_set_tid_address,-1,
-    SYS_stat,           -1,
-    SYS_uname,          -1,
-    SYS_write,          -1,
-    SYS_writev,         -1,
-    -1
-};
-#endif
 //初始化，系统调用限制表格
 //
 void init_ok_table(int lang)
@@ -246,10 +190,14 @@ void init_ok_table(int lang)
 	int *p = NULL;
 	switch(lang)
 	{
+		case judge_conf::LANG_CS:
+			p = ok_cs;
+			break;
 		case judge_conf::LANG_C:
 			p = ok_c;
 			break;
 		case judge_conf::LANG_CPP:
+		case judge_conf::LANG_CC11:
 			p = ok_cpp;
 			break;
 		case judge_conf::LANG_JAVA:
@@ -257,6 +205,7 @@ void init_ok_table(int lang)
 			break;
 		default:
 			///////LOG  bug！！！
+			p = ok_cpp;
 			break;
 	}
 	memset(ok_table,0,sizeof(ok_table));
@@ -265,6 +214,7 @@ void init_ok_table(int lang)
 		ok_table[p[i]] = p[i+1];
 	}
 }
+#endif
 
 static bool in_syscall = true;
 
@@ -279,7 +229,7 @@ bool is_valid_syscall(int lang,int syscall_id,pid_t child,user_regs_struct regs)
 #if __WORDSIZE == 32
 			addr = regs.ebx;
 #else
-			addr = regs.rdi;
+			addr = regs.rbi;
 #endif
 			union u{unsigned long val;char chars[sizeof(long)];} data;
 			unsigned long i = 0,j = 0,k = 0;
