@@ -223,6 +223,7 @@ class JudgeDaemon(Daemon):
 							gzhujudge = judge(one_solution["language"],datadir = dadir +"/" + str(one_solution['problemID']));
 						gzhujudge.setlimit(int(one_problem['timeLimit']),int(one_problem['memoryLimit']))	
 						gzhujudge.run();
+						solutions.update({"_id":one_solution["_id"]},{"$set":{"result":gzhujudge.result,"time":gzhujudge.time,"memory":gzhujudge.mem}})
 						if gzhujudge.result == OJ_CE:
 							ce_file = open(cefile)
 							try:
@@ -239,7 +240,6 @@ class JudgeDaemon(Daemon):
 							if is_ac == None:
 								users.update({'name':user['name']},{"$inc":{"solved":1}})
 						#users.update({'name':user['name']},{"$inc":{"submit":1}})
-						solutions.update({"_id":one_solution["_id"]},{"$set":{"result":gzhujudge.result,"time":gzhujudge.time,"memory":gzhujudge.mem}})
 				else:
 					pass
 			except:
