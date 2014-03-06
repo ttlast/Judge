@@ -35,17 +35,14 @@ namespace judge_conf
 	//¶ÑÕ»´óÐ¡ÉèÖÃ£º
 	int stack_size_limit = 8192;
 
-	//±àÒëÊ±ÏÞ(ms) 8s
-	int compile_time_limit = 8000;
+	//±àÒëÊ±ÏÞ(ms) 60s
+	int compile_time_limit = 60000;
 
 	//spjÊ±ÏÞ(ms) 10s
 	int spj_time_limit = 10000;
 
 	//Ê±¼äÎó²î£¬·ÀÖ¹ÏÞÖÆÌ«ËÀ.
 	int time_limit_addtion = 400;
-	//java Ê±¼ä¡¢ÄÚ´æ·­±¶
-	int java_time_factor = 2;
-	int java_memory_factor = 2;
 
 	//OJ²âÊÔ½á¹û
 	const int OJ_WAIT	= 0; 	//Queue

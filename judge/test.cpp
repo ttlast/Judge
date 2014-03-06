@@ -58,10 +58,12 @@ void output_result(int result,int memory_usage = 0,int time_usage = 0)
 {
 	//OJ_SE发生时，传入本函数的time_usage即是EXIT错误号，取负数是为了强调和提醒
 	//在前台看到System Error时，Time一栏的数值取绝对值就是EXIT错误号
+	//OJ_RF发生时，传入本函数的time_usage即是syscall号，取负数是为了强调和提醒
+	//在前台看到Dangerous Code时，Time一栏的数值取绝对值就是Syscall号
 	//Bugfix：之前版本评测过程中每处错误发生时一般会直接exit，导致前台status一直Running
 	//本次fix在所有SE导致的exit前都添加了对本函数的调用，并给出EXIT错误号，解决了此问题，更方便了SE发生时对系统进行调试
 	//fixed By Sine 2014-03-05
-	if (result == judge_conf::OJ_SE) time_usage *= -1;
+	if (result == judge_conf::OJ_SE || result == judge_conf::OJ_RF) time_usage *= -1;
 	//#ifdef JUDGE_DEBUG
 	LOG_DEBUG("result: %d, %dKB %dms",result,memory_usage,time_usage);
 	//#endif
@@ -284,11 +286,8 @@ void parse_arguments(int argc,char *argv[])	//根据命令设置好配置.
 		}
 	}
 
-	if(Langs[problem::lang]->VMrunning)
-	{
-		problem::time_limit *= judge_conf::java_time_factor;
-		problem::memory_limit *= judge_conf::java_memory_factor;
-	}
+	problem::time_limit *= Langs[problem::lang]->TimeFactor;
+	problem::memory_limit *= Langs[problem::lang]->MemFactor;
 	if(problem::tc){
 		problem::tc_file = problem::data_dir + "/" + Langs[problem::lang]->TCfile;
 	}
@@ -387,7 +386,7 @@ int Compiler()
 	{
 		chdir(problem::temp_dir.c_str());
 		freopen("ce.txt","w",stderr); //编译出错信息
-		freopen("kengdie.ce","w",stdout); //防止不必要的编译信息输出
+		freopen("kengdie.ce","w",stdout); //防止编译器在标准输出中输出额外的信息影响评测
 		malarm(ITIMER_REAL,judge_conf::compile_time_limit);
 		execvp(
 			Langs[problem::lang]->CompileCmd[0],
@@ -582,7 +581,7 @@ int main(int argc,char *argv[])
 				struct user_regs_struct regs;
 
 				init_ok_table(problem::lang);
-				for(;;){
+				for(;;) {
 					if(wait4(userexe,&status,0,&rused) < 0)
 					{
 						LOG_BUG("wait4 failed, %d:%s",errno,strerror(errno));
@@ -678,7 +677,7 @@ int main(int argc,char *argv[])
 
 					}
 					problem::memory_usage = Max(problem::memory_usage,tempmemory);
-					if(problem::memory_usage > problem::memory_limit)
+					if(problem::memory_usage > problem::memory_limit * Langs[problem::lang]->MemFactor)
 					{
 						problem::result = judge_conf::OJ_MLE;
 						ptrace(PTRACE_KILL,userexe);
@@ -701,6 +700,7 @@ int main(int argc,char *argv[])
 					{
 						LOG_WARNING("error for syscall %d",syscall_id);
 						problem::result = judge_conf::OJ_RF;
+						problem::time_usage = syscall_id;
 						ptrace(PTRACE_KILL,userexe,NULL,NULL);
 						break;
 					}
@@ -713,6 +713,8 @@ int main(int argc,char *argv[])
 					}
 				}//for(;;)
 			}//else   userexe end
+
+			if (problem::result == judge_conf::OJ_RF) break;
 
 			problem::time_usage += rused.ru_utime.tv_sec*1000 +
 				rused.ru_utime.tv_usec/1000;
@@ -727,8 +729,10 @@ int main(int argc,char *argv[])
 			if(problem::result != judge_conf::OJ_AC &&
 					problem::result != judge_conf::OJ_PE)
 			{
-				if(problem::result == judge_conf::OJ_TLE){
-					problem::time_usage = problem::time_limit;
+				if(problem::result == judge_conf::OJ_TLE) {
+					problem::time_usage = problem::time_limit * Langs[problem::lang]->TimeFactor;
+				} else if (problem::result == judge_conf::OJ_MLE) {
+					problem::memory_usage = problem::memory_limit * Langs[problem::lang]->MemFactor;
 				}
 				break;
 			}
@@ -739,9 +743,10 @@ int main(int argc,char *argv[])
 			*/
 			else
 			{
-				if (problem::time_usage > problem::time_limit) {
+				if (problem::time_usage > problem::time_limit * Langs[problem::lang]->TimeFactor) {
 					problem::result = judge_conf::OJ_TLE;
-					problem::time_usage = problem::time_limit;
+					problem::time_usage = problem::time_limit * Langs[problem::lang]->TimeFactor;
+					break;
 				}
 			}
 			//End of this Bufix

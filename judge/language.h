@@ -8,19 +8,21 @@ namespace LanguageSupport
 
 struct LangSupport
 {
-	std::string Name;                  //编程语言名称
-	std::string MainFile;              //待测程序源码文件
-	std::string TCfile;                //TC模式测试文件的文件名
-	const char* const CompileCmd[20];  //编译待评测程序的命令行
-	const char* const RunCmd[20];      //运行待评测程序的命令行
-	bool VMrunning;                    //该语言是否以虚拟机方式运行
+	std::string Name;					//编程语言名称
+	std::string MainFile;				//待测程序源码文件
+	std::string TCfile;					//TC模式测试文件的文件名
+	const char* const CompileCmd[20];	//编译待评测程序的命令行
+	const char* const RunCmd[20];		//运行待评测程序的命令行
+	int TimeFactor;						//时间限制的倍数
+	int MemFactor;						//内存限制的倍数
+	bool VMrunning;						//该语言是否以虚拟机方式运行
 };
 
 const LangSupport UnknownLang = {
 	"unknown", "NA", "NA",
 	{NULL},
 	{NULL},
-	false
+	0, 0, false
 };
 
 const LangSupport CLang = {
@@ -33,7 +35,7 @@ const LangSupport CLang = {
 	"--static", "-std=c99", "-DONLINE_JUDGE", NULL },
 #endif
 	{"./Main", NULL},
-	false
+	1, 1, false
 };
 
 const LangSupport CppLang = {
@@ -46,7 +48,7 @@ const LangSupport CppLang = {
 	"-lm", "--static", "-DONLINE_JUDGE", NULL },
 #endif
 	{"./Main", NULL},
-	false
+	1, 1, false
 };
 
 const LangSupport JavaLang = {
@@ -58,7 +60,7 @@ const LangSupport JavaLang = {
 	"Main.java", NULL },
 #endif
 	{"java", "-DONLINE_JUDGE=true", "Main", NULL},
-	true	
+	2, 2, true
 };
 
 const LangSupport CC11Lang = {
@@ -71,14 +73,14 @@ const LangSupport CC11Lang = {
 	"-Wall", "-lm", "--static", "-DONLINE_JUDGE", NULL },
 #endif
 	{"./Main", NULL},
-	false
+	1, 1, false
 };
 
 const LangSupport CSLang = {
 	"C#", "Main.cs", "tc.cs",
 	{"gmcs", "-define:ONLINE_JUDGE", "-warn:0", "Main.cs", NULL},
-	{"mono", "Main.exe", NULL},
-	true
+	{"Main.exe", NULL},
+	2, 2, false
 };
 
 }; //End of namespace
@@ -96,12 +98,12 @@ LanguageSupport::LangSupport const *Langs[] =
 namespace judge_conf
 {
 	//OJÓïÑÔ
-	const int LANG_UNKNOWN			= 0;
+	const int LANG_UNKNOWN		= 0;
 	const int LANG_C			= 1;
 	const int LANG_CPP			= 2;
 	const int LANG_JAVA			= 3;
 	const int LANG_CC11			= 4;
-	const int LANG_CS                       = 5;
+	const int LANG_CS			= 5;
 };
 
 //修改完后记得修改okcall.h
