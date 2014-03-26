@@ -12,6 +12,7 @@ import sys, os, time, atexit
 import subprocess
 from pymongo import Connection
 from signal import SIGTERM
+import ConfigParser
 
 #This is a daemon module
 class Daemon:
@@ -121,10 +122,13 @@ class Daemon:
 
 #This is the class for judge
 #
+daemondir = "/home/kidx/OJ"
+cfgfile = "/daemon.ini"
+dbip = "127.0.0.1"
 cefile = "./temp/ce.txt"
 dadir = "./data"
 tmdir = "./temp"
-langf = {1:"Main.c",2:"Main.cpp",3:"Main.java",4:"Main.cpp",5:"Main.cs"}
+langf = {1:"Main.c",2:"Main.cpp",3:"Main.java",4:"Main.cpp",5:"Main.cs",6:"Main.vb"}
 def makefile(lang,val):
 	try:
 		sfile = tmdir + "/" + langf[lang]
@@ -197,9 +201,15 @@ OJ_CE = 8
 #this is the judgeDaemon
 class JudgeDaemon(Daemon):
 	def run(self):
+		cfg = ConfigParser.ConfigParser()
+		cfg.readfp(open(daemondir+cfgfile))
+		dbip = cfg.get('daemon','DataBase')
+		cefile = cfg.get('daemon','CE_File')
+		dadir = cfg.get('daemon','DataFolder')
+		tmdir = cfg.get('daemon','TempFolder')
 		while True:
 			try:
-				con = Connection("127.0.0.1")
+				con = Connection(dbip)
 				db = con.gzhu_db
 				users = db.users
 				problems = db.problems
@@ -223,7 +233,6 @@ class JudgeDaemon(Daemon):
 							gzhujudge = judge(one_solution["language"],datadir = dadir +"/" + str(one_solution['problemID']));
 						gzhujudge.setlimit(int(one_problem['timeLimit']),int(one_problem['memoryLimit']))	
 						gzhujudge.run();
-						solutions.update({"_id":one_solution["_id"]},{"$set":{"result":gzhujudge.result,"time":gzhujudge.time,"memory":gzhujudge.mem}})
 						if gzhujudge.result == OJ_CE:
 							ce_file = open(cefile)
 							try:
@@ -233,13 +242,13 @@ class JudgeDaemon(Daemon):
 							except:
 								ce_file.close()
 								solutions.update({"_id":one_solution["_id"]},{"$set":{"CE":"错误：编译信息无法获取！（可能存在乱码）\n"}})
-								solutions.update({"_id":one_solution["_id"]},{"$set":{"result":gzhujudge.result,"time":gzhujudge.time,"memory":gzhujudge.mem}})
 						if gzhujudge.result == OJ_AC: #AC
 							problems.update({"problemID":int(one_solution['problemID'])},{"$inc":{"AC":1}})
 							is_ac = solutions.find_one({'problemID':int(one_solution['problemID']),'userName':one_solution['userName'],'result':OJ_AC})
 							if is_ac == None:
 								users.update({'name':user['name']},{"$inc":{"solved":1}})
-						#users.update({'name':user['name']},{"$inc":{"submit":1}})
+						solutions.update({"_id":one_solution["_id"]},{"$set":{"result":gzhujudge.result,"time":gzhujudge.time,"memory":gzhujudge.mem}})
+#users.update({'name':user['name']},{"$inc":{"submit":1}})
 				else:
 					pass
 			except:
@@ -250,6 +259,7 @@ class JudgeDaemon(Daemon):
 
 if __name__ == "__main__":
 	daemon = JudgeDaemon(os.getcwd() + '/dtest/daemon.pid',stdout="/dev/stdout") #绝对路径
+	daemondir = os.getcwd()
 	if len(sys.argv) == 2:
 		if 'start' == sys.argv[1]:
 			daemon.start()

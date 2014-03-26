@@ -5,6 +5,7 @@
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
+#include <map>
 #include <cctype>
 #include <string>
 #include <unistd.h>
@@ -22,12 +23,12 @@
 namespace judge_conf
 {
 	//ÅäÖÃÎÄ¼þÃû
-	const std::string config_file = "config.ini";
+	const char config_file[] = "config.ini";
 
 	//ÈÕÖ¾ÎÄ¼þÂ·¾¶
 	std::string log_file = "log.txt";
 
-	char sysuser[] = "kidx";
+	std::string sysuser = "kidx";
 
 	//judge ×Ô¼ºÊ±ÏÞ(ms) 40s
 	int judge_time_limit = 40000;
@@ -41,8 +42,56 @@ namespace judge_conf
 	//spjÊ±ÏÞ(ms) 10s
 	int spj_time_limit = 10000;
 
-	//Ê±¼äÎó²î£¬·ÀÖ¹ÏÞÖÆÌ«ËÀ.
-	int time_limit_addtion = 400;
+	void ReadConf()
+	{
+		FILE *conf = fopen(config_file, "r");
+		if (!conf) return;
+		enum { UNKNOW, JUDGE, SYSTEM } group;
+		std::map<std::string, std::string> judm, sysm;
+		char line[1024], key[512], val[512];
+		while (~fscanf(conf, "%s", line))
+		{
+			switch (line[0])
+			{
+			case '[':
+				if (line[1] == 'j') group = JUDGE;
+				else if (line[1] == 's') group = SYSTEM;
+				else group = UNKNOW;
+			case '#':
+				break;
+			default:
+				sscanf(line, "%[^=]=%s", key, val);
+				switch (group)
+				{
+				case JUDGE:
+					judm[key] = val;
+					break;
+				case SYSTEM:
+					sysm[key] = val;
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		if (judm.find("judge_time_limit") != judm.end())
+			sscanf(judm["judge_time_limit"].c_str(), "%d", &judge_time_limit);
+
+		if (judm.find("stack_size_limit") != judm.end())
+			sscanf(judm["stack_size_limit"].c_str(), "%d", &stack_size_limit);
+
+		if (judm.find("compile_time_limit") != judm.end())
+			sscanf(judm["compile_time_limit"].c_str(), "%d", &compile_time_limit);
+
+		if (judm.find("spj_time_limit") != judm.end())
+			sscanf(judm["spj_time_limit"].c_str(), "%d", &spj_time_limit);
+
+		if (sysm.find("log_file") != sysm.end())
+			log_file = sysm["log_file"];
+
+		if (sysm.find("sysuser") != sysm.end())
+			sysuser = sysm["sysuser"];
+	}
 
 	//OJ²âÊÔ½á¹û
 	const int OJ_WAIT	= 0; 	//Queue
@@ -83,6 +132,8 @@ namespace judge_conf
     const int EXIT_COMPARE_SPJ      = 30;
     const int EXIT_COMPARE_SPJ_FORK = 31;
     const int EXIT_TIMEOUT          = 36;
+    const int EXIT_NO_OKCFG         = 37;
+    const int EXIT_NO_LOGGER        = 38;
     const int EXIT_UNKNOWN          = 127;
 
 
@@ -139,8 +190,7 @@ namespace problem
 
 void timeout(int signo)
 {
-	printf("time is used\n");
-	printf("exit\n");
+	printf("14 0 36\n");
 	if(signo == SIGALRM)
 		exit(judge_conf::EXIT_TIMEOUT);
 }

@@ -50,7 +50,6 @@ using namespace std;
 extern int errno;
 const int MAXN = 8192;
 
-
 //重构：令语言支持独立于评测逻辑 By Sine 2013_12_01
 //In file "language.h"
 
@@ -322,8 +321,8 @@ void set_limit()
 {
 	rlimit lim;
 	//时间限制
-	lim.rlim_max = (problem::time_limit - problem::time_usage + 999)/1000 + 1;
-	lim.rlim_cur = lim.rlim_max;
+	lim.rlim_cur = (problem::time_limit - problem::time_usage + 999)/1000 + 1;
+	lim.rlim_max = lim.rlim_cur * 10;
 	if(setrlimit(RLIMIT_CPU,&lim) < 0){
 		LOG_BUG("error setrlimit for rlimit_cpu");
 		exit(judge_conf::EXIT_SET_LIMIT);
@@ -386,7 +385,7 @@ int Compiler()
 	{
 		chdir(problem::temp_dir.c_str());
 		freopen("ce.txt","w",stderr); //编译出错信息
-		freopen("kengdie.ce","w",stdout); //防止编译器在标准输出中输出额外的信息影响评测
+		freopen("/dev/null","w",stdout); //防止编译器在标准输出中输出额外的信息影响评测
 		malarm(ITIMER_REAL,judge_conf::compile_time_limit);
 		execvp(
 			Langs[problem::lang]->CompileCmd[0],
@@ -433,6 +432,7 @@ void sigseg(int){
 
 int main(int argc,char *argv[])
 {
+	judge_conf::ReadConf();
 	log_open(judge_conf::log_file.c_str());
 
 #ifdef JUDGE_DEBUG
@@ -510,7 +510,7 @@ int main(int argc,char *argv[])
 
 				//设置运行根目录、运行用户
 				//获得运行用户的信息
-				struct passwd *judge = getpwnam(judge_conf::sysuser);
+				struct passwd *judge = getpwnam(judge_conf::sysuser.c_str());
 				if(judge == NULL){
 					LOG_BUG("no user named 'judge'");
 					exit(judge_conf::EXIT_SET_SECURITY);
@@ -521,12 +521,11 @@ int main(int argc,char *argv[])
 					LOG_BUG("chdir failed");
 					exit(judge_conf::EXIT_SET_SECURITY);
 				}
-				char cwd[1024], *tmp = getcwd(cwd,1024);
-				printf("%s\n",cwd);
+			/*	char cwd[1024], *tmp = getcwd(cwd,1024);
 				if(tmp == NULL){ //获取当前目录失败
 					LOG_BUG("getcwd failed");
 					exit(judge_conf::EXIT_SET_SECURITY);
-				}
+				}*/
 
 				//#ifdef JUDEG_DEBUG
 				//这里现在在fedora下有bug
@@ -546,11 +545,11 @@ int main(int argc,char *argv[])
 				}
 
 
-				int user_time_limit = problem::time_limit - problem::time_usage
-					+ judge_conf::time_limit_addtion;
+	//			int user_time_limit = problem::time_limit - problem::time_usage
+	//				+ judge_conf::time_limit_addtion;
 
 				//设置用户程序的运行实际时间，防止意外情况卡住
-				if(EXIT_SUCCESS != malarm(ITIMER_REAL,user_time_limit))
+				if(EXIT_SUCCESS != malarm(ITIMER_REAL,judge_conf::judge_time_limit))
 				{
 					LOG_WARNING("malarm failed");
 					exit(judge_conf::EXIT_PRE_JUDGE);
@@ -580,7 +579,10 @@ int main(int argc,char *argv[])
 				int syscall_id = 0;
 				struct user_regs_struct regs;
 
-				init_ok_table(problem::lang);
+				if (!init_ok_table()) {
+					output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_NO_OKCFG);
+					exit(judge_conf::EXIT_NO_OKCFG);
+				}
 				for(;;) {
 					if(wait4(userexe,&status,0,&rused) < 0)
 					{
@@ -634,11 +636,11 @@ int main(int argc,char *argv[])
 							signo = WSTOPSIG(status);
 						switch(signo){
 							//TLE
-							case SIGALRM:
+				//			case SIGALRM:
 								//LOG_BUG("ALRM");
 							case SIGXCPU:
 								//LOG_BUG("XCPU");
-							case SIGVTALRM:
+				//			case SIGVTALRM:
 								//LOG_BUG("TALRM");
 							case SIGKILL:
 								//LOG_BUG("KILL");
@@ -726,6 +728,10 @@ int main(int argc,char *argv[])
 			problem::time_usage += rused.ru_stime.tv_sec*1000 +
 				rused.ru_stime.tv_usec/1000;
 			//End of this Bugfix
+			if (problem::time_usage > problem::time_limit * Langs[problem::lang]->TimeFactor)
+				problem::result = judge_conf::OJ_TLE;
+			if (problem::memory_usage > problem::memory_limit * Langs[problem::lang]->MemFactor)
+				problem::result = judge_conf::OJ_MLE;
 			if(problem::result != judge_conf::OJ_AC &&
 					problem::result != judge_conf::OJ_PE)
 			{
@@ -736,20 +742,7 @@ int main(int argc,char *argv[])
 				}
 				break;
 			}
-			/*
-			Buffix: time usage greater than limit, but get AC or PE
-			Date & Time: 2013-12-05 05:51
-			Author: Sine
-			*/
-			else
-			{
-				if (problem::time_usage > problem::time_limit * Langs[problem::lang]->TimeFactor) {
-					problem::result = judge_conf::OJ_TLE;
-					problem::time_usage = problem::time_limit * Langs[problem::lang]->TimeFactor;
-					break;
-				}
-			}
-			//End of this Bufix
+			else break;
 
 		}//if(isInfile())
 

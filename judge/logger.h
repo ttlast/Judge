@@ -84,6 +84,7 @@ int log_open(const char *filename)
 
 	if(log_fd == -1)
 	{
+		printf("14 0 -38\n");
 		fprintf(stderr,"log_file: %s",log_filename);
 		perror("Can't not open log file");
 		exit(1);

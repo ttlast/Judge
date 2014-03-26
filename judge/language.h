@@ -79,7 +79,14 @@ const LangSupport CC11Lang = {
 const LangSupport CSLang = {
 	"C#", "Main.cs", "tc.cs",
 	{"gmcs", "-define:ONLINE_JUDGE", "-warn:0", "Main.cs", NULL},
-	{"Main.exe", NULL},
+	{"mono", "Main.exe", NULL},
+	2, 2, false
+};
+
+const LangSupport VBLang = {
+	"VB.Net", "Main.vb", "tc.vb",
+	{"vbnc", "-define:ONLINE_JUDGE", "-nowarn", "Main.vb", NULL},
+	{"mono", "Main.exe", NULL},
 	2, 2, false
 };
 
@@ -92,20 +99,20 @@ LanguageSupport::LangSupport const *Langs[] =
 	&LanguageSupport::CppLang,
 	&LanguageSupport::JavaLang,
 	&LanguageSupport::CC11Lang,
-	&LanguageSupport::CSLang
+	&LanguageSupport::CSLang,
+	&LanguageSupport::VBLang
 };
 
 namespace judge_conf
 {
 	//OJÓïÑÔ
-	const int LANG_UNKNOWN		= 0;
+	const int LANG_UNKNOWN			= 0;
 	const int LANG_C			= 1;
 	const int LANG_CPP			= 2;
 	const int LANG_JAVA			= 3;
 	const int LANG_CC11			= 4;
 	const int LANG_CS			= 5;
+	const int LANG_VB			= 6;
 };
-
-//修改完后记得修改okcall.h
 
 #endif
