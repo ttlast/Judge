@@ -42,7 +42,7 @@ bool is_valid_syscall(int lang,int syscall_id,pid_t child,user_regs_struct regs)
 	if(ok_table[syscall_id] == 0){
 		long addr;
 		if(syscall_id == SYS_open){
-#if __WORDSIZE == 32
+#if __i386__
 			addr = regs.ebx;
 #else
 			addr = regs.rbi;

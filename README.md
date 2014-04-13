@@ -24,3 +24,5 @@ python daemon主体在
 	/data 文件夹是数据存储部分
 	/temp 是临时文件部分
 
+关于daemon：
+	daemon已从后台运行改为了前台运行，以便使用pm2进行管理。如果不想使用pm2,可以换用unusedfiles中的daemon-back.py

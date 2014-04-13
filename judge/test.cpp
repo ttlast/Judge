@@ -69,6 +69,13 @@ void output_result(int result,int memory_usage = 0,int time_usage = 0)
 	printf("%d %d %d\n",result,memory_usage,time_usage);
 }
 
+void timeout(int signo)
+{
+	output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_TIMEOUT);
+	if(signo == SIGALRM)
+		exit(judge_conf::EXIT_TIMEOUT);
+}
+
 //normal compare file
 void compare_until_nonspace(int &c_std,int &c_usr,
 		FILE *&fd_std,FILE *&fd_usr,int &ret)

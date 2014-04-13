@@ -188,13 +188,6 @@ namespace problem
 #endif
 };
 
-void timeout(int signo)
-{
-	printf("14 0 36\n");
-	if(signo == SIGALRM)
-		exit(judge_conf::EXIT_TIMEOUT);
-}
-
 //ÕæÊµÊ±¼ä	½ø³ÌÖ´ÐÐÓÃ»§Ì¬ ÄÚºËÌ¬Ê±¼ä	½ø³ÌÖ´ÐÐ×ÜÊ±¼ä £¬ÉèÖÃºÃÏûÏ¢¡£
 //ÕâÀïÓÃÕæÊµÊ±¼ä£¬·ÀÖ¹ÓÃ»§ÓÃcons sleepµÈ ¿¨ËÀjudge
 //which ±íÊ¾Ä³¸öÊ±¼ä£º ITIMER_REAL	ITIMER_VIRTUAL	ITIMER_PROF
