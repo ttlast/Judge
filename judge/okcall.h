@@ -45,7 +45,7 @@ bool is_valid_syscall(int lang,int syscall_id,pid_t child,user_regs_struct regs)
 #if __i386__
 			addr = regs.ebx;
 #else
-			addr = regs.rbi;
+			addr = regs.rbx;
 #endif
 			union u{unsigned long val;char chars[sizeof(long)];} data;
 			unsigned long i = 0,j = 0,k = 0;
