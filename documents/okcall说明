@@ -1,0 +1,10 @@
+﻿1.当代码被判为Dangerous Code时，Status中该次submit的Time一栏中的数字取绝对值就是SysCall号；
+2.SysCall号对应的SysCall名请在/usr/include/i386-linux-gnu/asm/unistd_32.h中查看，64位系统对应文件为/usr/include/x86_64-linux-gnu/asm/unistd_64.h，对应SysCall号的宏定义开头的__NR换为SYS即可。
+3.如果需要增加或修改某系统调用对某语言的限制，请编辑okcall.h，格式请参考现有代码；
+4.修改后请使用make -B重新编译Judge然后rejudge相应的题目；
+4.保留了从文件okcall.cfg读入限制规则的功能，okcall.cfg中的规则优先级高于原有规则，可覆盖原有规则，且同时对所有语言生效；
+5.如果比赛时或其他不方便重新编译Judge程序的重要场合中，正常代码被误判为Dangerous Code，可以编写okcall.cfg来临时设置规则；
+6.在okcall.h中编写的规则每条规则占一行，格式为：
+                                SysCall号 := 限制次数
+  其中限制次数为-1意味着不限制调用次数
+7.从文件读入规则的功能建议仅用作临时处理，一旦可以重新编译Judge时，应把相应的规>则写入okcall.h并删除okcall.cfg。

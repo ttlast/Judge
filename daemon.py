@@ -15,6 +15,18 @@ from pymongo import MongoClient
 from signal import SIGTERM
 import ConfigParser
 
+#This is the class for judge
+#
+daemondir = "Path of mine"
+cfgfile = "/daemon.ini" # Don't change it!!!!
+dbip = "127.0.0.1"
+cefile = "./temp/ce.txt"
+dadir = "./data"
+tmdir = "./temp"
+lockfile = "/home/kidx/mongo.lock"
+langf = {1:"Main.c",2:"Main.cpp",3:"Main.java",4:"Main.cpp",5:"Main.cs",6:"Main.vb"}
+
+
 #This is a daemon module
 class Daemon:
 	'''
@@ -29,7 +41,7 @@ class Daemon:
 	def start(self):
 		'''
 		'''
-		os.chdir("./judge");
+		os.chdir(daemondir + "/judge");
 		#os.umask(0)
 
 		#redirect standard io
@@ -48,16 +60,6 @@ class Daemon:
 	def run(slef):
 		pass
 
-#This is the class for judge
-#
-daemondir = "Path of mine"
-cfgfile = "/daemon.ini" # Don't change it!!!!
-dbip = "127.0.0.1"
-cefile = "./temp/ce.txt"
-dadir = "./data"
-tmdir = "./temp"
-lockfile = "/home/kidx/mongo.lock"
-langf = {1:"Main.c",2:"Main.cpp",3:"Main.java",4:"Main.cpp",5:"Main.cs",6:"Main.vb"}
 
 def makefile(lang,val):
 	try:
@@ -116,7 +118,7 @@ class judge:
 			self.time = int(self.time)
 		except :
 			exit(1)
-#		print (self.result,self.mem,self.time)
+#		print (self.result,self.mem,self.timek
 
 OJ_WAIT = 0
 OJ_RUN = 1
@@ -174,8 +176,8 @@ class JudgeDaemon(Daemon):
 								ce_file.close()
 								solutions.update({"_id":one_solution["_id"]},{"$set":{"CE":"错误：编译信息无法获取！（可能存在乱码）\n"}})
 						if gzhujudge.result == OJ_AC: #AC
-							fcntl.flock(dblocker, fcntl.LOCK_EX)
 							problems.update({"problemID":int(one_solution['problemID'])},{"$inc":{"AC":1}})
+							fcntl.flock(dblocker, fcntl.LOCK_EX)
 							is_ac = solutions.find_one({'problemID':int(one_solution['problemID']),'userName':one_solution['userName'],'result':OJ_AC})
 							if is_ac == None:
 								users.update({'name':user['name']},{"$inc":{"solved":1}})
@@ -183,7 +185,6 @@ class JudgeDaemon(Daemon):
 							fcntl.flock(dblocker, fcntl.LOCK_UN)
 						else:
 							solutions.update({"_id":one_solution["_id"]},{"$set":{"result":gzhujudge.result,"time":gzhujudge.time,"memory":gzhujudge.mem}})
-						#users.update({'name':user['name']},{"$inc":{"submit":1}})
 				else:
 					pass
 			except:

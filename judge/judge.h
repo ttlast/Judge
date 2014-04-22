@@ -20,6 +20,7 @@
 #include "language.h"
 
 //#define JUDGE_DEBUG
+
 namespace judge_conf
 {
 	//ÅäÖÃÎÄ¼þÃû
@@ -132,7 +133,6 @@ namespace judge_conf
     const int EXIT_COMPARE_SPJ      = 30;
     const int EXIT_COMPARE_SPJ_FORK = 31;
     const int EXIT_TIMEOUT          = 36;
-    const int EXIT_NO_OKCFG         = 37;
     const int EXIT_NO_LOGGER        = 38;
     const int EXIT_UNKNOWN          = 127;
 
@@ -174,7 +174,6 @@ namespace problem
 	{
 		LOG_DEBUG("----Problem\tinformation----");
 		LOG_DEBUG("Problem spj : %s Problem tc %s",spj?"True":"False",tc?"True":"False");
-		LOG_DEBUG("id %d lang %s",id,judge_conf::Langs[lang]->Name.c_str());
 		LOG_DEBUG("time_limit %d	memory_limit %d",time_limit,memory_limit);
 		LOG_DEBUG("output_limit %d",output_limit);
 

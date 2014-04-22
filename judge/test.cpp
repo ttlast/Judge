@@ -519,7 +519,7 @@ int main(int argc,char *argv[])
 				//获得运行用户的信息
 				struct passwd *judge = getpwnam(judge_conf::sysuser.c_str());
 				if(judge == NULL){
-					LOG_BUG("no user named 'judge'");
+					LOG_BUG("no user named %s", judge_conf::sysuser.c_str());
 					exit(judge_conf::EXIT_SET_SECURITY);
 				}
 
@@ -578,7 +578,7 @@ int main(int argc,char *argv[])
 				);
 				int errsa = errno;
 				exit(judge_conf::EXIT_PRE_JUDGE_EXECLP);
-			}else{
+			} else {
 				//父进程监控子进程的状态和系统调用
 				signal(SIGSEGV,sigseg);
 
@@ -586,11 +586,9 @@ int main(int argc,char *argv[])
 				int syscall_id = 0;
 				struct user_regs_struct regs;
 
-				if (!init_ok_table()) {
-					output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_NO_OKCFG);
-					exit(judge_conf::EXIT_NO_OKCFG);
-				}
-				for(;;) {
+				init_ok_table(problem::lang);
+
+				while (true) {
 					if(wait4(userexe,&status,0,&rused) < 0)
 					{
 						LOG_BUG("wait4 failed, %d:%s",errno,strerror(errno));
@@ -720,7 +718,7 @@ int main(int argc,char *argv[])
 						output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_JUDGE);
 						exit(judge_conf::EXIT_JUDGE);
 					}
-				}//for(;;)
+				}//while (true)
 			}//else   userexe end
 
 			if (problem::result == judge_conf::OJ_RF) break;
@@ -749,11 +747,9 @@ int main(int argc,char *argv[])
 				}
 				break;
 			}
-			else break;
-
 		}//if(isInfile())
 
-	}//end while
+	}//end while, next input file
 	output_result(problem::result,problem::memory_usage,problem::time_usage);
 	return 0;
 }
