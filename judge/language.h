@@ -42,10 +42,10 @@ const LangSupport CppLang = {
 	"c++", "Main.cpp", "tc.cpp",
 #ifdef JUDGE_DEBUG
 	{"g++","Main.cpp","-o",
-	"Main", "-O2",NULL},
+	"Main", "-std=c++98", "-O2",NULL},
 #else
-	{ "g++", "Main.cpp", "-o", "Main", "-Wall",
-	"-lm", "--static", "-DONLINE_JUDGE", NULL },
+	{ "g++", "Main.cpp", "-o", "Main", "-std=c++98",
+	 "-Wall","-lm", "--static", "-DONLINE_JUDGE", NULL },
 #endif
 	{"./Main", NULL},
 	1, 1, false
@@ -66,10 +66,10 @@ const LangSupport JavaLang = {
 const LangSupport CC11Lang = {
 	"c++11", "Main.cpp", "tc.cpp",
 #ifdef JUDGE_DEBUG
-	{"g++-4.8","Main.cpp","-o",
+	{"g++","Main.cpp","-o",
 	"Main", "-std=c++11","-O2",NULL},
 #else
-	{ "g++-4.8", "Main.cpp", "-o", "Main", "-std=c++11",
+	{ "g++", "Main.cpp", "-o", "Main", "-std=c++11",
 	"-Wall", "-lm", "--static", "-DONLINE_JUDGE", NULL },
 #endif
 	{"./Main", NULL},
@@ -116,3 +116,5 @@ namespace judge_conf
 };
 
 #endif
+
+//不要忘了修改okcall.h
