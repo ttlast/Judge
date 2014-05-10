@@ -512,6 +512,8 @@ int main(int argc,char *argv[])
 				output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_PRE_JUDGE);
 				exit(judge_conf::EXIT_PRE_JUDGE);
 			}else if(userexe == 0){
+
+				signal(SIGSEGV,sigseg);
 				//重新定向io
 				io_redirect();
 
@@ -552,11 +554,11 @@ int main(int argc,char *argv[])
 				}
 
 
-	//			int user_time_limit = problem::time_limit - problem::time_usage
-	//				+ judge_conf::time_limit_addtion;
+				int user_time_limit = problem::time_limit - problem::time_usage
+					+ judge_conf::time_limit_addtion;
 
 				//设置用户程序的运行实际时间，防止意外情况卡住
-				if(EXIT_SUCCESS != malarm(ITIMER_REAL,judge_conf::judge_time_limit))
+				if(EXIT_SUCCESS != malarm(ITIMER_REAL,user_time_limit))
 				{
 					LOG_WARNING("malarm failed");
 					exit(judge_conf::EXIT_PRE_JUDGE);
@@ -580,7 +582,6 @@ int main(int argc,char *argv[])
 				exit(judge_conf::EXIT_PRE_JUDGE_EXECLP);
 			} else {
 				//父进程监控子进程的状态和系统调用
-				signal(SIGSEGV,sigseg);
 
 				int status = 0;
 				int syscall_id = 0;

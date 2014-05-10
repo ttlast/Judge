@@ -43,6 +43,8 @@ namespace judge_conf
 	//spjÊ±ÏÞ(ms) 10s
 	int spj_time_limit = 10000;
 
+	int time_limit_addtion = 10000;
+
 	void ReadConf()
 	{
 		FILE *conf = fopen(config_file, "r");
