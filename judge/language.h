@@ -59,7 +59,7 @@ const LangSupport JavaLang = {
 	{ "javac", "-J-Xms32m", "-J-Xmx256m",
 	"Main.java", NULL },
 #endif
-	{"java", "-DONLINE_JUDGE=true", "Main", NULL},
+	{"java","-Xms32M","-Xms256M", "-DONLINE_JUDGE=true", "Main", NULL},
 	2, 2, true
 };
 
