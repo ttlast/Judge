@@ -31,7 +31,7 @@ const LangSupport CLang = {
 	{"gcc","Main.c","-o","Main", 
 	"-std=c99", "-O2", NULL},
 #else
-	{"gcc", "Main.c", "-o", "Main", "-Wall", "-lm",
+	{"gcc", "Main.c", "-o", "Main", "-Wall", "-lm", "-O2",
 	"--static", "-std=c99", "-DONLINE_JUDGE", NULL },
 #endif
 	{"./Main", NULL},
@@ -44,7 +44,7 @@ const LangSupport CppLang = {
 	{"g++","Main.cpp","-o",
 	"Main", "-std=c++98", "-O2",NULL},
 #else
-	{ "g++", "Main.cpp", "-o", "Main", "-std=c++98",
+	{ "g++", "Main.cpp", "-o", "Main", "-std=c++98", "-O2",
 	 "-Wall","-lm", "--static", "-DONLINE_JUDGE", NULL },
 #endif
 	{"./Main", NULL},
@@ -56,10 +56,9 @@ const LangSupport JavaLang = {
 #ifdef JUDGE_DEBUG
 	{"javac", "Main.java", NULL },
 #else
-	{ "javac", "-J-Xms32m", "-J-Xmx256m",
-	"Main.java", NULL },
+	{ "javac", "-J-Xms128M", "-J-Xmx512M", "Main.java", NULL },
 #endif
-	{"java", "-DONLINE_JUDGE=true", "Main", NULL},
+	{"java", "-Xms128M", "-Xmx512M", "-DONLINE_JUDGE=true", "Main", NULL},
 	2, 2, true
 };
 
@@ -69,7 +68,7 @@ const LangSupport CC11Lang = {
 	{"g++","Main.cpp","-o",
 	"Main", "-std=c++11","-O2",NULL},
 #else
-	{ "g++", "Main.cpp", "-o", "Main", "-std=c++11",
+	{ "g++", "Main.cpp", "-o", "Main", "-std=c++11", "-O2",
 	"-Wall", "-lm", "--static", "-DONLINE_JUDGE", NULL },
 #endif
 	{"./Main", NULL},
