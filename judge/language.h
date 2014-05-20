@@ -31,7 +31,7 @@ const LangSupport CLang = {
 	{"gcc","Main.c","-o","Main", 
 	"-std=c99", "-O2", NULL},
 #else
-	{"gcc", "Main.c", "-o", "Main", "-Wall", "-lm", "-O2",
+	{"gcc", "Main.c", "-o", "Main", "-Wall", "-lm",
 	"--static", "-std=c99", "-DONLINE_JUDGE", NULL },
 #endif
 	{"./Main", NULL},
@@ -44,7 +44,7 @@ const LangSupport CppLang = {
 	{"g++","Main.cpp","-o",
 	"Main", "-std=c++98", "-O2",NULL},
 #else
-	{ "g++", "Main.cpp", "-o", "Main", "-std=c++98", "-O2",
+	{ "g++", "Main.cpp", "-o", "Main", "-std=c++98",
 	 "-Wall","-lm", "--static", "-DONLINE_JUDGE", NULL },
 #endif
 	{"./Main", NULL},
@@ -68,7 +68,7 @@ const LangSupport CC11Lang = {
 	{"g++","Main.cpp","-o",
 	"Main", "-std=c++11","-O2",NULL},
 #else
-	{ "g++", "Main.cpp", "-o", "Main", "-std=c++11", "-O2",
+	{ "g++", "Main.cpp", "-o", "Main", "-std=c++11",
 	"-Wall", "-lm", "--static", "-DONLINE_JUDGE", NULL },
 #endif
 	{"./Main", NULL},

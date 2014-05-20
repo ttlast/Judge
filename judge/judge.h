@@ -132,8 +132,11 @@ namespace judge_conf
     const int EXIT_SET_SECURITY     = 17;
     const int EXIT_JUDGE            = 21;
     const int EXIT_COMPARE          = 27;
+    const int EXIT_ACCESS_SPJ		= 29;
     const int EXIT_COMPARE_SPJ      = 30;
     const int EXIT_COMPARE_SPJ_FORK = 31;
+    const int EXIT_COMPARE_SPJ_WAIT = 32;
+    const int EXIT_COMPARE_SPJ_OUT  = 33;
     const int EXIT_TIMEOUT          = 36;
     const int EXIT_NO_LOGGER        = 38;
     const int EXIT_UNKNOWN          = 127;

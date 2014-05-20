@@ -157,18 +157,18 @@ int spj_compare_output(
 		system(syscmd.c_str());
 	}
 	if (access((spj_exec+"/"+problem::spj_exe_file).c_str(),0)) {
-		output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_COMPARE_SPJ);
-		exit(judge_conf::EXIT_COMPARE_SPJ);
+		output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_ACCESS_SPJ);
+		exit(judge_conf::EXIT_ACCESS_SPJ);
 	}
 	//	return judge_conf::OJ_SE;
 	//End of the Improve*/
 	int status = 0;
 	pid_t pid_spj = fork();
-	if(pid_spj < 0){
+	if (pid_spj < 0) {
 		LOG_WARNING("error for spj failed");
-		output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_COMPARE_SPJ);
-		exit(judge_conf::EXIT_COMPARE_SPJ);
-	}else if(pid_spj == 0){
+		output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_COMPARE_SPJ_FORK);
+		exit(judge_conf::EXIT_COMPARE_SPJ_FORK);
+	} else if(pid_spj == 0) {
 
 		freopen(file_spj.c_str(),"w",stdout);
 
@@ -183,31 +183,31 @@ int spj_compare_output(
 				printf("spj execlp error\n");
 			}
 		}
-	}else{
-		if(waitpid(pid_spj,&status,0) < 0){
-			output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_COMPARE_SPJ);
-			exit(judge_conf::EXIT_COMPARE_SPJ);
+	} else {
+		if (waitpid(pid_spj,&status,0) < 0) {
+			output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_COMPARE_SPJ_WAIT);
+			exit(judge_conf::EXIT_COMPARE_SPJ_WAIT);
 		}
 
-		if(WIFEXITED(status)){
-			if(WEXITSTATUS(status) == EXIT_SUCCESS){
+		if (WIFEXITED(status)) {
+			if (WEXITSTATUS(status) == EXIT_SUCCESS) {
 				FILE *fd = fopen(file_spj.c_str(),"r");
-				if(fd == NULL) {
-					output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_COMPARE_SPJ);
-					exit(judge_conf::EXIT_COMPARE_SPJ);
+				if (fd == NULL) {
+					output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_COMPARE_SPJ_OUT);
+					exit(judge_conf::EXIT_COMPARE_SPJ_OUT);
 				}
 				char buf[20];
-				if(fscanf(fd,"%19s",buf) == EOF){
+				if (fscanf(fd,"%19s",buf) == EOF) {
 					return judge_conf::OJ_WA;
 				}
-				if(fd) fclose(fd);
-				if(strcmp(buf,"AC") == 0){
+				if (fd) fclose(fd);
+				if (strcmp(buf,"AC") == 0) {
 					return judge_conf::OJ_AC;
-				}else if(strcmp(buf,"PE") == 0){
+				} else if(strcmp(buf,"PE") == 0) {
 					return judge_conf::OJ_PE;
-				}else if(strcmp(buf,"WA") == 0){
+				} else if(strcmp(buf,"WA") == 0) {
 					return judge_conf::OJ_WA;
-				}else return judge_conf::EXIT_COMPARE_SPJ;
+				} else return judge_conf::EXIT_COMPARE_SPJ;
 			}
 		}
 	}
@@ -237,7 +237,7 @@ int tt_compare_output(string &file_std,string &file_usr)
 	if((!fd_std) || (!fd_usr)){
 		//LOG_DEBUG("compare This is the file: %s\n",problem::input_file.c_str());
 		ret = judge_conf::OJ_RE_ABRT;
-	}else{
+	} else {
 		c_std = fgetc(fd_std);
 		c_usr = fgetc(fd_usr);
 		for(;;){

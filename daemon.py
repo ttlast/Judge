@@ -23,7 +23,7 @@ dbip = "127.0.0.1"
 cefile = "./temp/ce.txt"
 dadir = "./data"
 tmdir = "./temp"
-lockfile = "/home/kidx/mongo.lock"
+lockerpath = "/home/kidx/"
 langf = {1:"Main.c",2:"Main.cpp",3:"Main.java",4:"Main.cpp",5:"Main.cs",6:"Main.vb"}
 
 
@@ -139,8 +139,7 @@ class JudgeDaemon(Daemon):
 		cefile = cfg.get('daemon','CE_File')
 		dadir = cfg.get('daemon','DataFolder')
 		tmdir = cfg.get('daemon','TempFolder')
-		lockfile = cfg.get('daemon','LockFile')
-		dblocker = open(lockfile,'w')
+		lockerpath = cfg.get('daemon','LockerPath')
 		while True:
 			try:
 				con = MongoClient(dbip)
@@ -177,12 +176,15 @@ class JudgeDaemon(Daemon):
 								solutions.update({"_id":one_solution["_id"]},{"$set":{"CE":"错误：编译信息无法获取！（可能存在乱码）\n"}})
 						if gzhujudge.result == OJ_AC: #AC
 							problems.update({"problemID":int(one_solution['problemID'])},{"$inc":{"AC":1}})
-							fcntl.flock(dblocker, fcntl.LOCK_EX)
+							userfile = lockerpath + str(user['name']) + ".lock"
+							userlocker = open(userfile, 'w')
+							fcntl.flock(userlocker, fcntl.LOCK_EX)
 							is_ac = solutions.find_one({'problemID':int(one_solution['problemID']),'userName':one_solution['userName'],'result':OJ_AC})
 							if is_ac == None:
 								users.update({'name':user['name']},{"$inc":{"solved":1}})
 							solutions.update({"_id":one_solution["_id"]},{"$set":{"result":gzhujudge.result,"time":gzhujudge.time,"memory":gzhujudge.mem}})
-							fcntl.flock(dblocker, fcntl.LOCK_UN)
+							fcntl.flock(userlocker, fcntl.LOCK_UN)
+							userlocker.close()
 						else:
 							solutions.update({"_id":one_solution["_id"]},{"$set":{"result":gzhujudge.result,"time":gzhujudge.time,"memory":gzhujudge.mem}})
 				else:
