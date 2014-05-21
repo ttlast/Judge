@@ -57,8 +57,10 @@ namespace judge_conf
 			switch (line[0])
 			{
 			case '[':
-				if (line[1] == 'j') group = JUDGE;
-				else if (line[1] == 's') group = SYSTEM;
+				if (!strncmp(line+1, "judge", 5))
+					group = JUDGE;
+				else if (!strncmp(line+1, "system", 6))
+					group = SYSTEM;
 				else group = UNKNOW;
 			case '#':
 				break;
@@ -133,7 +135,7 @@ namespace judge_conf
     const int EXIT_JUDGE            = 21;
     const int EXIT_COMPARE          = 27;
     const int EXIT_ACCESS_SPJ		= 29;
-    const int EXIT_COMPARE_SPJ      = 30;
+    const int EXIT_RUNTIME_SPJ      = 30;
     const int EXIT_COMPARE_SPJ_FORK = 31;
     const int EXIT_COMPARE_SPJ_WAIT = 32;
     const int EXIT_COMPARE_SPJ_OUT  = 33;
@@ -166,6 +168,7 @@ namespace problem
 
 	std::string source_file;	//Ô´ÎÄ¼þ
 	std::string tc_file;		//tcÄ£Ê½ÎÄ¼þ
+	std::string tc_head;
 	std::string spj_exe_file;	//spj¿ÉÖ´ÐÐÎÄ¼þ
 
 	std::string input_file;	//ÊäÈëÎÄ¼þ

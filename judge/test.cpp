@@ -95,35 +95,30 @@ void compare_until_nonspace(int &c_std,int &c_usr,
 	}
 }
 
-//tc模式
+//合并文件
 void addfile(string &main_file,string &tc_file){
 	LOG_DEBUG("TC mode");
 	char cc[MAXN+5];
-	FILE *sc_fd = fopen(main_file.c_str(),"a");
+	FILE *sc_fd = fopen(main_file.c_str(),"a+");
 	FILE *tc_fd = fopen(tc_file.c_str(),"r");
 	if(sc_fd && tc_fd) {
-	/*	exit(judge_conf::EXIT_PRE_JUDGE);
-	}else{*/
-		/*
-		Bugfix: Add a newline character before main function
-		Date & Time: 2013-07-29 14:07
-		Author: Sine
-		*/
 		fputs("\n",sc_fd);
-		//End of the Bugfix
 		while(fgets(cc,MAXN,tc_fd)){
 			fputs(cc,sc_fd);
 		}
 	}
-	if(sc_fd)
-		fclose(sc_fd);
-	if(tc_fd)
-		fclose(tc_fd);
+	if (sc_fd) fclose(sc_fd);
+	if (tc_fd) fclose(tc_fd);
 }
 
 int tc_mode(){
 	problem::source_file = problem::temp_dir + "/" + Langs[problem::lang]->MainFile;
-	addfile(problem::source_file,problem::tc_file);
+	string syscmd = "mv ", source_temp = problem::temp_dir + "/tempfile.txt";
+	syscmd += problem::source_file + " " + source_temp;
+	system(syscmd.c_str());
+	addfile(problem::source_file, problem::tc_head);
+	addfile(problem::source_file, source_temp);
+	addfile(problem::source_file, problem::tc_file);
 	return -1;
 }
 
@@ -131,7 +126,7 @@ int tc_mode(){
 int spj_compare_output(
 		string input_file,		//标准输入文件
 		string output_file,		//用户程序的输出文件
-		string spj_exec,		//spj路径,change it from exefile to the folder who store the exefile
+		string spj_path,		//spj路径,change it from exefile to the folder who store the exefile
 		string file_spj,		//spj的输出文件
 		string output_file_std
 		)
@@ -139,7 +134,7 @@ int spj_compare_output(
 #ifdef JUDGE_DEBUG__
 	cout<<"inputfile: "<<input_file<<endl;
 	cout<<"outputfile: "<<output_file<<endl;
-	cout<<"spj_exec: "<<spj_exec<<endl;
+	cout<<"spj_exec: "<<spj_path<<endl;
 	cout<<"file_spj: "<<file_spj<<endl;
 #endif
 	/*
@@ -148,15 +143,15 @@ int spj_compare_output(
 	Date & Time: 2013-11-10 08:03
 	Author: Sine
 	*/
-	if (access((spj_exec+"/spj.cpp").c_str(),0) == 0) {
+	if (access((spj_path+"/spj.cpp").c_str(),0) == 0) {
 		string syscmd = "g++ -o ";
-		syscmd += spj_exec + "/"+problem::spj_exe_file+" " + spj_exec + "/spj.cpp"; 
+		syscmd += spj_path + "/"+problem::spj_exe_file+" " + spj_path + "/spj.cpp"; 
 		system(syscmd.c_str());
 		syscmd = "mv ";
-		syscmd += spj_exec + "/spj.cpp " + spj_exec + "/spj.oldcode";
+		syscmd += spj_path + "/spj.cpp " + spj_path + "/spj.oldcode";
 		system(syscmd.c_str());
 	}
-	if (access((spj_exec+"/"+problem::spj_exe_file).c_str(),0)) {
+	if (access((spj_path+"/"+problem::spj_exe_file).c_str(),0)) {
 		output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_ACCESS_SPJ);
 		exit(judge_conf::EXIT_ACCESS_SPJ);
 	}
@@ -176,7 +171,7 @@ int spj_compare_output(
 		{
 			log_close();
 			//argv[1] 标准输入 ， argv[2] 用户程序输出, argv[3] 标准输出
-			if(execlp((spj_exec+"/"+problem::spj_exe_file).c_str(),
+			if(execlp((spj_path+"/"+problem::spj_exe_file).c_str(),
 				problem::spj_exe_file.c_str(),input_file.c_str(),
 				output_file.c_str(),output_file_std.c_str(),NULL) < 0)
 			{
@@ -207,12 +202,12 @@ int spj_compare_output(
 					return judge_conf::OJ_PE;
 				} else if(strcmp(buf,"WA") == 0) {
 					return judge_conf::OJ_WA;
-				} else return judge_conf::EXIT_COMPARE_SPJ;
+				}
 			}
 		}
 	}
-	output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_COMPARE_SPJ);
-	exit(judge_conf::EXIT_COMPARE_SPJ);
+	output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_RUNTIME_SPJ);
+	exit(judge_conf::EXIT_RUNTIME_SPJ);
 }
 
 //普通比较
@@ -296,6 +291,7 @@ void parse_arguments(int argc,char *argv[])	//根据命令设置好配置.
 	problem::memory_limit *= Langs[problem::lang]->MemFactor;
 	if(problem::tc){
 		problem::tc_file = problem::data_dir + "/" + Langs[problem::lang]->TCfile;
+		problem::tc_head = problem::data_dir + "/" + Langs[problem::lang]->TChead;
 	}
 	if(problem::spj == true)
 	{
