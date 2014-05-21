@@ -113,7 +113,7 @@ void addfile(string &main_file,string &tc_file){
 
 int tc_mode(){
 	problem::source_file = problem::temp_dir + "/" + Langs[problem::lang]->MainFile;
-	string syscmd = "mv ", source_temp = problem::temp_dir + "/tempfile.txt";
+	string syscmd = "mv -f ", source_temp = problem::temp_dir + "/tempfile.txt";
 	syscmd += problem::source_file + " " + source_temp;
 	system(syscmd.c_str());
 	addfile(problem::source_file, problem::tc_head);
@@ -147,7 +147,7 @@ int spj_compare_output(
 		string syscmd = "g++ -o ";
 		syscmd += spj_path + "/"+problem::spj_exe_file+" " + spj_path + "/spj.cpp"; 
 		system(syscmd.c_str());
-		syscmd = "mv ";
+		syscmd = "mv -f ";
 		syscmd += spj_path + "/spj.cpp " + spj_path + "/spj.oldcode";
 		system(syscmd.c_str());
 	}
