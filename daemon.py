@@ -20,7 +20,7 @@ import ConfigParser
 daemondir = "Path of mine"
 cfgfile = "/daemon.ini" # Don't change it!!!!
 dbip = "127.0.0.1"
-cefile = "./temp/ce.txt"
+cefile = "ce.txt"
 dadir = "./data"
 tmdir = "./temp"
 lockerpath = "/home/kidx/"
@@ -32,15 +32,15 @@ class Daemon:
 	'''
 	A daemon for gzhu judge
 	'''
-	def __init__(self,pidfile,stdin='/dev/null',stdout='/dev/null',stderr='/dev/null'):
+	def __init__(self,stdin='/dev/null',stdout='/dev/null',stderr='/dev/null'):
 		self.stdin = stdin
 		self.stdout = stdout
 		self.stderr = stderr
-		self.pidfile = pidfile
 
 	def start(self):
 		'''
 		'''
+		print daemondir
 		os.chdir(daemondir + "/judge");
 		#os.umask(0)
 
@@ -61,12 +61,12 @@ class Daemon:
 		pass
 
 
-def makefile(lang,val):
+def makefile(indir,lang,val):
 	try:
-		sfile = tmdir + "/" + langf[lang]
-	#	print sfile
+		sfile = indir + "/" + langf[lang]
+		print sfile
 		fd = codecs.open(sfile,"wb",'utf-8')
-	#	print sfile
+		print sfile
 		fd.write(val)
 		fd.close()
 		return True
@@ -134,6 +134,7 @@ OJ_CE = 8
 class JudgeDaemon(Daemon):
 	def run(self):
 		cfg = ConfigParser.ConfigParser()
+		print daemondir
 		cfg.readfp(open(daemondir+cfgfile))
 		dbip = cfg.get('daemon','DataBase')
 		cefile = cfg.get('daemon','CE_File')
@@ -151,22 +152,22 @@ class JudgeDaemon(Daemon):
 				if one_solution != None:
 					user = users.find_one({'name':one_solution['userName']})
 					#print one_solution["language"],one_solution["code"]
-					if makefile(int(one_solution["language"]),one_solution["code"]):
+					if makefile(tmdir,int(one_solution["language"]),one_solution["code"]):
 						#print one_solution["language"],one_solution["code"]
-						#print dadir + "/" + str(one_solution['problemID'])
+						print dadir + "/" + str(one_solution['problemID'])
 						one_problem = problems.find_one({'problemID':int(one_solution['problemID'])})
 						if int(one_problem['spj']) == 1 and int(one_problem['TC']) == 1:
-							gzhujudge = judge(one_solution["language"],datadir = dadir +"/" + str(one_solution['problemID']),spj=True,tc=True);
+							gzhujudge = judge(one_solution["language"],datadir = dadir +"/" + str(one_solution['problemID']),tmpdir=tmdir,spj=True,tc=True);
 						elif int(one_problem['spj']) == 1:
-							gzhujudge = judge(one_solution["language"],datadir = dadir +"/" + str(one_solution['problemID']),spj=True);
+							gzhujudge = judge(one_solution["language"],datadir = dadir +"/" + str(one_solution['problemID']),tmpdir=tmdir,spj=True);
 						elif int(one_problem['TC']) == 1:
-							gzhujudge = judge(one_solution["language"],datadir = dadir +"/" + str(one_solution['problemID']),tc=True);
+							gzhujudge = judge(one_solution["language"],datadir = dadir +"/" + str(one_solution['problemID']),tmpdir=tmdir,tc=True);
 						else:
-							gzhujudge = judge(one_solution["language"],datadir = dadir +"/" + str(one_solution['problemID']));
+							gzhujudge = judge(one_solution["language"],datadir = dadir +"/" + str(one_solution['problemID']),tmpdir=tmdir);
 						gzhujudge.setlimit(int(one_problem['timeLimit']),int(one_problem['memoryLimit']))	
 						gzhujudge.run();
 						if gzhujudge.result == OJ_CE:
-							ce_file = open(cefile)
+							ce_file = open(tmdir + '/' + cefile)
 							try:
 								all_ce_text = ce_file.read()
 								ce_file.close()
@@ -196,7 +197,7 @@ class JudgeDaemon(Daemon):
 
 
 if __name__ == "__main__":
-	daemon = JudgeDaemon(os.getcwd() + '/dtest/daemon.pid',stdout="/dev/stdout") #绝对路径
+	daemon = JudgeDaemon(stdout="/dev/stdout")
 	daemondir = os.getcwd()
 	daemon.start()
 
