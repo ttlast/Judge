@@ -206,8 +206,7 @@ int spj_compare_output(
 			}
 		}
 	}
-	output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_RUNTIME_SPJ);
-	exit(judge_conf::EXIT_RUNTIME_SPJ);
+	return judge_conf::OJ_WA;
 }
 
 //普通比较
