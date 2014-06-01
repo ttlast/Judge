@@ -118,7 +118,7 @@ SysCallLimit C11Limit[] = {
 	Allow (SYS_access) Calls (1),
 	Allow (SYS_brk) Calls (INF),
 	Allow (SYS_clock_gettime) Calls (INF),
-	Allow (SYS_close) Calls (8),
+	Allow (SYS_close) Calls (1),
 	Allow (SYS_execve) Calls (1),
 	Allow (SYS_exit_group) Calls (1),
 	Allow (SYS_futex) Calls (INF),
