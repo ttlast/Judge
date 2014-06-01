@@ -26,29 +26,29 @@ struct SysCallLimit {
 #define INF -1
 
 SysCallLimit CLimit[] = {
-	Allow (SYS_set_thread_area) Calls (1),
-	Allow (SYS_get_thread_area) Calls (1),
-	Allow (SYS_rt_sigprocmask) Calls (1),
-	Allow (SYS_gettid) Calls (1),
-	Allow (SYS_execve) Calls (1),
-	Allow (SYS_uname) Calls (1),
-	Allow (SYS_brk) Calls (INF),
-	Allow (SYS_readlink) Calls (1),
 	Allow (SYS_access) Calls (1),
-	Allow (SYS_time) Calls (INF),
+	Allow (SYS_arch_prctl) Calls (1),
+	Allow (SYS_brk) Calls (INF),
 	Allow (SYS_clock_gettime) Calls (INF),
-	Allow (SYS_munmap) Calls (INF),
+	Allow (SYS_close) Calls (8),
+	Allow (SYS_execve) Calls (1),
+	Allow (SYS_exit_group) Calls (1),
+	Allow (SYS_fstat) Calls (2),
+	Allow (SYS_get_thread_area) Calls (1),
+	Allow (SYS_gettid) Calls (1),
+	Allow (SYS_mmap) Calls (8),
 	Allow (SYS_mprotect) Calls (16),
+	Allow (SYS_munmap) Calls (INF),
+	Allow (SYS_open) Calls (2),
 	Allow (SYS_read) Calls (INF),
+	Allow (SYS_readlink) Calls (1),
+	Allow (SYS_rt_sigprocmask) Calls (1),
+	Allow (SYS_set_thread_area) Calls (1),
+	Allow (SYS_tgkill) Calls (2),
+	Allow (SYS_time) Calls (INF),
+	Allow (SYS_uname) Calls (1),
 	Allow (SYS_write) Calls (INF),
 	Allow (SYS_writev) Calls (INF),
-	Allow (SYS_open) Calls (2),
-	Allow (SYS_close) Calls (8),
-	Allow (SYS_tgkill) Calls (2),
-	Allow (SYS_exit_group) Calls (1),
-	Allow (SYS_mmap) Calls (2),
-	Allow (SYS_arch_prctl) Calls (1),
-	Allow (SYS_fstat) Calls (2),
 	EndLimitTable
 };
 
@@ -76,7 +76,7 @@ SysCallLimit CppLimit[] = {
 	Allow (SYS_tgkill) Calls (2),
 	Allow (SYS_futex) Calls (INF),
 	Allow (SYS_exit_group) Calls (1),
-	Allow (SYS_mmap) Calls (2),
+	Allow (SYS_mmap) Calls (8),
 	Allow (SYS_arch_prctl) Calls (1),
 	Allow (SYS_fstat) Calls (2),
 	EndLimitTable
@@ -138,6 +138,7 @@ SysCallLimit C11Limit[] = {
 	Allow (SYS_tgkill) Calls (2),
 	Allow (SYS_futex) Calls (INF),
 	Allow (SYS_exit_group) Calls (1),
+	Allow (SYS_mmap) Calls (8),
 	EndLimitTable
 };
 
