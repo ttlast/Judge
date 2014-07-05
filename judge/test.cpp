@@ -56,7 +56,8 @@ const int MAXN = 8192;
 void output_result(int result,int memory_usage = 0,int time_usage = 0)
 {
 	//OJ_SE发生时，传入本函数的time_usage即是EXIT错误号，取负数是为了强调和提醒
-	//在前台看到System Error时，Time一栏的数值取绝对值就是EXIT错误号
+	//此时若memory_usage < 0则为errno，说明错误发生的原因，取负数是为了强调和提醒
+	//在前台看到System Error时，Time一栏的数值取绝对值就是EXIT错误号，Memory一栏取绝对值则为errno
 	//OJ_RF发生时，传入本函数的time_usage即是syscall号，取负数是为了强调和提醒
 	//在前台看到Dangerous Code时，Time一栏的数值取绝对值就是Syscall号
 	//Bugfix：之前版本评测过程中每处错误发生时一般会直接exit，导致前台status一直Running
@@ -160,8 +161,8 @@ int spj_compare_output(
 	int status = 0;
 	pid_t pid_spj = fork();
 	if (pid_spj < 0) {
-		LOG_WARNING("error for spj failed");
-		output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_COMPARE_SPJ_FORK);
+		LOG_WARNING("error for spj failed, %d:%s",errno,strerror(errno));
+		output_result(judge_conf::OJ_SE,-errno,judge_conf::EXIT_COMPARE_SPJ_FORK);
 		exit(judge_conf::EXIT_COMPARE_SPJ_FORK);
 	} else if(pid_spj == 0) {
 
@@ -180,7 +181,8 @@ int spj_compare_output(
 		}
 	} else {
 		if (waitpid(pid_spj,&status,0) < 0) {
-			output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_COMPARE_SPJ_WAIT);
+			LOG_BUG("waitpid failed, %d:%s",errno,strerror(errno));
+			output_result(judge_conf::OJ_SE,-errno,judge_conf::EXIT_COMPARE_SPJ_WAIT);
 			exit(judge_conf::EXIT_COMPARE_SPJ_WAIT);
 		}
 
@@ -380,8 +382,8 @@ int Compiler()
 	pid_t compiler = fork();
 	if(compiler < 0)
 	{
-		LOG_WARNING("error fork compiler");
-		output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_COMPILE);
+		LOG_WARNING("error fork compiler, %d:%s",errno,strerror(errno));
+		output_result(judge_conf::OJ_SE,-errno,judge_conf::EXIT_COMPILE);
 		exit(judge_conf::EXIT_COMPILE);
 	}else if(compiler == 0)
 	{
@@ -503,8 +505,8 @@ int main(int argc,char *argv[])
 
 			pid_t userexe = fork();
 			if(userexe < 0){
-				LOG_WARNING("fork for userexe failed");
-				output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_PRE_JUDGE);
+				LOG_WARNING("fork for userexe failed, %d:%s",errno,strerror(errno));
+				output_result(judge_conf::OJ_SE,-errno,judge_conf::EXIT_PRE_JUDGE);
 				exit(judge_conf::EXIT_PRE_JUDGE);
 			}else if(userexe == 0){
 
@@ -588,7 +590,7 @@ int main(int argc,char *argv[])
 					if(wait4(userexe,&status,0,&rused) < 0)
 					{
 						LOG_BUG("wait4 failed, %d:%s",errno,strerror(errno));
-						output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_JUDGE);
+						output_result(judge_conf::OJ_SE,-errno,judge_conf::EXIT_JUDGE);
 						exit(judge_conf::EXIT_JUDGE);
 					}
 					//如果是退出信号
@@ -689,8 +691,8 @@ int main(int argc,char *argv[])
 
 					//检查userexe的syscall
 					if(ptrace(PTRACE_GETREGS,userexe,0,&regs) < 0){
-						LOG_BUG("error ptrace ptrace_getregs");
-						output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_JUDGE);
+						LOG_BUG("error ptrace ptrace_getregs, %d:%s",errno,strerror(errno));
+						output_result(judge_conf::OJ_SE,-errno,judge_conf::EXIT_JUDGE);
 						exit(judge_conf::EXIT_JUDGE);
 					}
 #ifdef __i386__
@@ -710,8 +712,8 @@ int main(int argc,char *argv[])
 
 					if(ptrace(PTRACE_SYSCALL,userexe,NULL,NULL) < 0)
 					{
-						LOG_BUG("error ptrace ptrace syscall");
-						output_result(judge_conf::OJ_SE,0,judge_conf::EXIT_JUDGE);
+						LOG_BUG("error ptrace ptrace syscall, %d:%s",errno,strerror(errno));
+						output_result(judge_conf::OJ_SE,-errno,judge_conf::EXIT_JUDGE);
 						exit(judge_conf::EXIT_JUDGE);
 					}
 				}//while (true)
