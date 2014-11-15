@@ -731,9 +731,9 @@ int main(int argc,char *argv[])
 			problem::time_usage += rused.ru_stime.tv_sec*1000 +
 				rused.ru_stime.tv_usec/1000;
 			//End of this Bugfix
-			if (problem::time_usage > problem::time_limit * Langs[problem::lang]->TimeFactor)
+			if (problem::time_usage > problem::time_limit)
 				problem::result = judge_conf::OJ_TLE;
-			if (problem::memory_usage > problem::memory_limit * Langs[problem::lang]->MemFactor)
+			if (problem::memory_usage > problem::memory_limit)
 				problem::result = judge_conf::OJ_MLE;
 			if(problem::result != judge_conf::OJ_AC &&
 					problem::result != judge_conf::OJ_PE)

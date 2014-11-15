@@ -10,3 +10,4 @@
 *.swp
 *.pid
 *.cfg
+./judge/temp
