@@ -4,10 +4,9 @@
 *.tmp
 *.ini
 *.txt
-*.txt~
 *.pyc
-*.cpp~
 *.swp
 *.pid
 *.cfg
 /judge/temp
+/judge/Judge
