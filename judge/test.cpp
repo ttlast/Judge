@@ -739,9 +739,9 @@ int main(int argc,char *argv[])
 					problem::result != judge_conf::OJ_PE)
 			{
 				if(problem::result == judge_conf::OJ_TLE) {
-					problem::time_usage = problem::time_limit * Langs[problem::lang]->TimeFactor;
+					problem::time_usage = problem::time_limit;
 				} else if (problem::result == judge_conf::OJ_MLE) {
-					problem::memory_usage = problem::memory_limit * Langs[problem::lang]->MemFactor;
+					problem::memory_usage = problem::memory_limit;
 				}
 				break;
 			}
