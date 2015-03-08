@@ -33,7 +33,7 @@ const LangSupport CLang = {
 	"-std=c99", "-O2", NULL},
 #else
 	{"gcc", "Main.c", "-o", "Main", "-Wall", "-lm",
-	"--static", "-std=c99", "-DONLINE_JUDGE", NULL },
+	"--static", "-std=c11", "-DONLINE_JUDGE", NULL },
 #endif
 	{"./Main", NULL},
 	1, 1, false
