@@ -325,7 +325,7 @@ void set_limit()
 {
 	rlimit lim;
 	//时间限制
-	lim.rlim_cur = (problem::time_limit - problem::time_usage + 999)/1000 + 1;
+	lim.rlim_cur = (problem::time_limit - problem::time_usage + Langs[problem::lang]->LoadFramework + 999)/1000 + 1;
 	lim.rlim_max = lim.rlim_cur * 10;
 	if(setrlimit(RLIMIT_CPU,&lim) < 0){
 		LOG_BUG("error setrlimit for rlimit_cpu");
@@ -552,7 +552,7 @@ int main(int argc,char *argv[])
 
 
 				int user_time_limit = problem::time_limit - problem::time_usage
-					+ judge_conf::time_limit_addtion;
+					+ judge_conf::time_limit_addtion + Langs[problem::lang]->LoadFramework;
 
 				//设置用户程序的运行实际时间，防止意外情况卡住
 				if(EXIT_SUCCESS != malarm(ITIMER_REAL,user_time_limit))
@@ -721,8 +721,9 @@ int main(int argc,char *argv[])
 
 			if (problem::result == judge_conf::OJ_RF) break;
 
-			problem::time_usage += rused.ru_utime.tv_sec*1000 +
-				rused.ru_utime.tv_usec/1000;
+			int testcaseTime = rused.ru_utime.tv_sec*1000 +
+				rused.ru_utime.tv_usec/1000 - Langs[problem::lang]->LoadFramework;
+			problem::time_usage += testcaseTime > 0 ? testcaseTime : 0;
 			/*
 			Bugfix: Used time have not take account of the System Time
 			Date & Time: 2013-11-10 09:36

@@ -16,6 +16,7 @@ struct LangSupport
 	const char* const RunCmd[20];		//运行待评测程序的命令行
 	int TimeFactor;						//时间限制的倍数
 	int MemFactor;						//内存限制的倍数
+	int LoadFramework;				//框架启动用时
 	bool VMrunning;						//该语言是否以虚拟机方式运行
 };
 
@@ -23,7 +24,7 @@ const LangSupport UnknownLang = {
 	"unknown", "NA", "NA", "NA",
 	{NULL},
 	{NULL},
-	0, 0, false
+	0, 0, 0, false
 };
 
 const LangSupport CLang = {
@@ -36,7 +37,7 @@ const LangSupport CLang = {
 	"--static", "-std=c11", "-DONLINE_JUDGE", NULL },
 #endif
 	{"./Main", NULL},
-	1, 1, false
+	1, 1, 0, false
 };
 
 const LangSupport CppLang = {
@@ -49,7 +50,7 @@ const LangSupport CppLang = {
 	 "-Wall","-lm", "--static", "-DONLINE_JUDGE", NULL },
 #endif
 	{"./Main", NULL},
-	1, 1, false
+	1, 1, 0, false
 };
 
 const LangSupport JavaLang = {
@@ -60,7 +61,7 @@ const LangSupport JavaLang = {
 	{ "javac", "-J-Xms128M", "-J-Xmx512M", "Main.java", NULL },
 #endif
 	{ "java", "-Xms128M", "-Xms512M", "-DONLINE_JUDGE=true", "Main", NULL },
-	2, 2, true
+	2, 2, 200, true
 };
 
 const LangSupport CC11Lang = {
@@ -73,21 +74,21 @@ const LangSupport CC11Lang = {
 	"-Wall", "-lm", "--static", "-DONLINE_JUDGE", NULL },
 #endif
 	{"./Main", NULL},
-	1, 1, false
+	1, 1, 0, false
 };
 
 const LangSupport CSLang = {
 	"C#", "Main.cs", "tc.cs", "tch.cs",
 	{"gmcs", "-define:ONLINE_JUDGE", "-warn:0", "Main.cs", NULL},
 	{"mono", "Main.exe", NULL},
-	2, 2, false
+	2, 2, 60, false
 };
 
 const LangSupport VBLang = {
 	"VB.Net", "Main.vb", "tc.vb", "tch.vb",
 	{"vbnc", "-define:ONLINE_JUDGE", "-nowarn", "Main.vb", NULL},
 	{"mono", "Main.exe", NULL},
-	2, 2, false
+	2, 2, 120, false
 };
 
 }; //End of namespace
