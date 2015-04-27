@@ -1,0 +1,6 @@
+[daemon]
+DataBase=127.0.0.1
+CE_File=ce.txt
+DataFolder=/home/kidx/GzhuOJ/data
+TempFolder=./temp
+LockerPath=/home/

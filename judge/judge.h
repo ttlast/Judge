@@ -5,6 +5,7 @@
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
+#include <map>
 #include <cctype>
 #include <string>
 #include <unistd.h>
@@ -16,15 +17,19 @@
 #include <pwd.h>
 #include <sys/types.h>
 #include "logger.h"
+#include "language.h"
 
 //#define JUDGE_DEBUG
+
 namespace judge_conf
 {
 	//ÅäÖÃÎÄ¼þÃû
-	const std::string config_file = "config.ini";
+	const char config_file[] = "config.ini";
 
 	//ÈÕÖ¾ÎÄ¼þÂ·¾¶
 	std::string log_file = "log.txt";
+
+	std::string sysuser = "kidx";
 
 	//judge ×Ô¼ºÊ±ÏÞ(ms) 40s
 	int judge_time_limit = 40000;
@@ -32,24 +37,66 @@ namespace judge_conf
 	//¶ÑÕ»´óÐ¡ÉèÖÃ£º
 	int stack_size_limit = 8192;
 
-	//±àÒëÊ±ÏÞ(ms) 8s
-	int compile_time_limit = 8000;
+	//±àÒëÊ±ÏÞ(ms) 60s
+	int compile_time_limit = 60000;
 
 	//spjÊ±ÏÞ(ms) 10s
 	int spj_time_limit = 10000;
 
-	//Ê±¼äÎó²î£¬·ÀÖ¹ÏÞÖÆÌ«ËÀ.
-	int time_limit_addtion = 400;
-	//java Ê±¼ä¡¢ÄÚ´æ·­±¶
-	int java_time_factor = 2;
-	int java_memory_factor = 2;
+	int time_limit_addtion = 10000;
 
-	//OJÓïÑÔ
-	const std::string languages[] = {"unknown","c","c++","java"};
-	const int LANG_UNKNOWN		= 0;
-	const int LANG_C			= 1;
-	const int LANG_CPP			= 2;
-	const int LANG_JAVA			= 3;
+	void ReadConf()
+	{
+		FILE *conf = fopen(config_file, "r");
+		if (!conf) return;
+		enum { UNKNOW, JUDGE, SYSTEM } group;
+		std::map<std::string, std::string> judm, sysm;
+		char line[1024], key[512], val[512];
+		while (~fscanf(conf, "%s", line))
+		{
+			switch (line[0])
+			{
+			case '[':
+				if (!strncmp(line+1, "judge", 5))
+					group = JUDGE;
+				else if (!strncmp(line+1, "system", 6))
+					group = SYSTEM;
+				else group = UNKNOW;
+			case '#':
+				break;
+			default:
+				sscanf(line, "%[^=]=%s", key, val);
+				switch (group)
+				{
+				case JUDGE:
+					judm[key] = val;
+					break;
+				case SYSTEM:
+					sysm[key] = val;
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		if (judm.find("judge_time_limit") != judm.end())
+			sscanf(judm["judge_time_limit"].c_str(), "%d", &judge_time_limit);
+
+		if (judm.find("stack_size_limit") != judm.end())
+			sscanf(judm["stack_size_limit"].c_str(), "%d", &stack_size_limit);
+
+		if (judm.find("compile_time_limit") != judm.end())
+			sscanf(judm["compile_time_limit"].c_str(), "%d", &compile_time_limit);
+
+		if (judm.find("spj_time_limit") != judm.end())
+			sscanf(judm["spj_time_limit"].c_str(), "%d", &spj_time_limit);
+
+		if (sysm.find("log_file") != sysm.end())
+			log_file = sysm["log_file"];
+
+		if (sysm.find("sysuser") != sysm.end())
+			sysuser = sysm["sysuser"];
+	}
 
 	//OJ²âÊÔ½á¹û
 	const int OJ_WAIT	= 0; 	//Queue
@@ -87,9 +134,13 @@ namespace judge_conf
     const int EXIT_SET_SECURITY     = 17;
     const int EXIT_JUDGE            = 21;
     const int EXIT_COMPARE          = 27;
-    const int EXIT_COMPARE_SPJ      = 30;
+    const int EXIT_ACCESS_SPJ		= 29;
+    const int EXIT_RUNTIME_SPJ      = 30;
     const int EXIT_COMPARE_SPJ_FORK = 31;
+    const int EXIT_COMPARE_SPJ_WAIT = 32;
+    const int EXIT_COMPARE_SPJ_OUT  = 33;
     const int EXIT_TIMEOUT          = 36;
+    const int EXIT_NO_LOGGER        = 38;
     const int EXIT_UNKNOWN          = 127;
 
 
@@ -117,6 +168,7 @@ namespace problem
 
 	std::string source_file;	//Ô´ÎÄ¼þ
 	std::string tc_file;		//tcÄ£Ê½ÎÄ¼þ
+	std::string tc_head;
 	std::string spj_exe_file;	//spj¿ÉÖ´ÐÐÎÄ¼þ
 
 	std::string input_file;	//ÊäÈëÎÄ¼þ
@@ -130,7 +182,6 @@ namespace problem
 	{
 		LOG_DEBUG("----Problem\tinformation----");
 		LOG_DEBUG("Problem spj : %s Problem tc %s",spj?"True":"False",tc?"True":"False");
-		LOG_DEBUG("id %d lang %s",id,judge_conf::languages[lang].c_str());
 		LOG_DEBUG("time_limit %d	memory_limit %d",time_limit,memory_limit);
 		LOG_DEBUG("output_limit %d",output_limit);
 
@@ -143,14 +194,6 @@ namespace problem
 	}
 #endif
 };
-
-void timeout(int signo)
-{
-	printf("time is used\n");
-	printf("exit\n");
-	if(signo == SIGALRM)
-		exit(judge_conf::EXIT_TIMEOUT);
-}
 
 //ÕæÊµÊ±¼ä	½ø³ÌÖ´ÐÐÓÃ»§Ì¬ ÄÚºËÌ¬Ê±¼ä	½ø³ÌÖ´ÐÐ×ÜÊ±¼ä £¬ÉèÖÃºÃÏûÏ¢¡£
 //ÕâÀïÓÃÕæÊµÊ±¼ä£¬·ÀÖ¹ÓÃ»§ÓÃcons sleepµÈ ¿¨ËÀjudge

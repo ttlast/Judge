@@ -112,7 +112,7 @@ namespace problem
 	std::string data_dir;	//数据目录
 
 	//出错信息 debug 用
-	std::string stdout_file_compiler;	
+	std::string stdout_file_compiler;
 	std::string stderr_file_complier;
 	std::string stdout_file_executive;
 	std::string stderr_file_executive;
